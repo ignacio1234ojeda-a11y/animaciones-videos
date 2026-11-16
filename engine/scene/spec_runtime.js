@@ -56,10 +56,10 @@ function drawItem(it, t, T) {
   if (k <= 0.01 && it.kind !== 'guy') return '';
   switch (it.kind) {
     case 'guy': {
-      let st = { expr: it.expr, pose: it.pose || 'rest', look: it.look || [0, -4], x: it.x, y: it.y, sc: it.sc, talk: it.talk };
+      let st = { expr: it.expr, pose: it.pose || 'rest', look: it.look || [0, -4], x: it.x, y: it.y, sc: it.sc, talk: it.talk, body: it.body, legs: it.legs };
       let lastCh = -9;
       for (const [tc, c] of it.ch || []) if (t >= tc) { Object.assign(st, c); lastCh = tc; }
-      const o = { expr: st.expr, t, lookX: st.look[0], lookY: st.look[1] };
+      const o = { expr: st.expr, t, lookX: st.look[0], lookY: st.look[1], body: st.body, legs: st.legs };
       Object.assign(o, POSES[st.pose] ? POSES[st.pose](t) : {});
       o.sy = 1 + 0.012 * Math.sin(t * 2.6 + st.x);
       o.lean = (o.lean || 0) + 1.5 * Math.sin(t * 1.3 + st.x);

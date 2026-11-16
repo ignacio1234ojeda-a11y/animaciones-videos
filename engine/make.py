@@ -21,8 +21,8 @@ VOICE = "am_puck"
 def shot(at, *items, bg="studio", cam=(1.0, 1.05), focus=(540, 1000), sfx="whoosh"):
     return dict(at=at, items=list(items), bg=bg, cam=list(cam), focus=list(focus), sfx=sfx)
 
-def guy(x=540, y=1480, sc=2.2, expr="curious", talk=True, look=(0, -4), pose="rest", at=None, ch=()):
-    return dict(kind="guy", x=x, y=y, sc=sc, expr=expr, talk=talk, look=list(look), pose=pose, at=at, ch=list(ch))
+def guy(x=540, y=1480, sc=2.2, expr="curious", talk=True, look=(0, -4), pose="rest", at=None, ch=(), body=None, legs=None):
+    return dict(kind="guy", x=x, y=y, sc=sc, expr=expr, talk=talk, look=list(look), pose=pose, at=at, ch=list(ch), body=body, legs=legs)
 
 def label(text, at, x=540, y=260, col="#ffd23f", size=64, out=None, sfx="pop"):
     return dict(kind="label", text=text, at=at, x=x, y=y, col=col, size=size, out=out, sfx=sfx)

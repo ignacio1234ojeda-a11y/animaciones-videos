@@ -106,21 +106,21 @@ function guyHead(o) {
   return s + guyFace(o);
 }
 function guy(o) {
-  const skin = o.skin || WHITE, shade = o.shade || SHADE;
+  const skin = o.skin || WHITE, shade = o.shade || SHADE, body = o.body || skin, legs = o.legs || body, bshade = o.body ? 'rgba(0,0,0,0.14)' : shade;
   let s = '';
   s += `<path d="M-22,-96 L-26,-14 M22,-96 L22,-14" fill="none" stroke="${INK}" stroke-width="32" stroke-linecap="round"/>`;
-  s += `<path d="M-22,-96 L-26,-14 M22,-96 L22,-14" fill="none" stroke="${skin}" stroke-width="18" stroke-linecap="round"/>`;
+  s += `<path d="M-22,-96 L-26,-14 M22,-96 L22,-14" fill="none" stroke="${legs}" stroke-width="18" stroke-linecap="round"/>`;
   s += `<ellipse cx="-40" cy="-9" rx="28" ry="13" fill="${skin}" stroke="${INK}" stroke-width="6"/>`;
   s += `<ellipse cx="8" cy="-9" rx="28" ry="13" fill="${skin}" stroke="${INK}" stroke-width="6"/>`;
   const bc = uid('gb');
   const bd = 'M-46,-214 C-60,-160 -64,-112 -52,-88 Q0,-70 52,-88 C64,-112 60,-160 46,-214 Q0,-236 -46,-214 Z';
   s += `<defs><clipPath id="${bc}"><path d="${bd}"/></clipPath></defs>`;
-  s += `<path d="${bd}" fill="${skin}"/><g clip-path="url(#${bc})"><ellipse cx="54" cy="-150" rx="30" ry="90" fill="${shade}"/></g>`;
+  s += `<path d="${bd}" fill="${body}"/><g clip-path="url(#${bc})"><ellipse cx="54" cy="-150" rx="30" ry="90" fill="${bshade}"/></g>`;
   s += `<path d="${bd}" fill="none" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
   const L = o.armL || [-64, -118], R = o.armR || [64, -118];
-  s += noodle(40, -196, R[0], R[1], o.bendR === undefined ? 18 : o.bendR, skin);
+  s += noodle(40, -196, R[0], R[1], o.bendR === undefined ? 18 : o.bendR, body);
   s += guyHead(o);
-  s += noodle(-40, -196, L[0], L[1], o.bendL === undefined ? -18 : o.bendL, skin);
+  s += noodle(-40, -196, L[0], L[1], o.bendL === undefined ? -18 : o.bendL, body);
   if (o.propBehind) s = o.propBehind + s;
   if (o.prop) s += o.prop;
   s += hand(L[0], L[1], skin, o.pointL === undefined ? null : o.pointL) + hand(R[0], R[1], skin, o.pointR === undefined ? null : o.pointR);
@@ -1653,9 +1653,9 @@ function sunFace(x, y, sc, t, o = {}) {
   let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
   for (let i = 0; i < 12; i++) {
     const a = i * 30 + t * 20, L = 60 + 14 * Math.sin(t * 6 + i);
-    s += `<g transform="rotate(${n(a)})"><path d="M-22,-150 L0,${n(-170 - L)} L22,-150 Z" fill="${SUN_D}" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/></g>`;
+    s += `<g transform="rotate(${n(a)})"><path d="M-22,-150 L0,${n(-170 - L)} L22,-150 Z" fill="${o.rays || SUN_D}" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/></g>`;
   }
-  s += `<circle r="150" fill="${SUN}" stroke="${INK}" stroke-width="9"/><circle cx="-40" cy="-50" r="80" fill="#ffe27a" opacity="0.6"/>`;
+  s += `<circle r="150" fill="${o.fill || SUN}" stroke="${INK}" stroke-width="9"/><circle cx="-40" cy="-50" r="80" fill="${o.fill ? '#fff' : '#ffe27a'}" opacity="0.6"/>`;
   const m = o.mood || 'happy';
   if (o.shades) {
     s += `<path d="M-110,-40 L110,-40 L100,-10 Q70,30 25,0 L-25,0 Q-70,30 -100,-10 Z" fill="${INK}"/><path d="M-80,-30 L-50,-30" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`;
