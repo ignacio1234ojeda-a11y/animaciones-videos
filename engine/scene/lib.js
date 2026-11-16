@@ -1757,3 +1757,61 @@ function arrowCurve(cx, cy, r, a0, a1, col = '#ffd23f') {
   const [ha, hb] = [h(150), h(-150)];
   return `<path d="M${n(x0)},${n(y0)} A${r},${r} 0 ${big} ${sw} ${n(x1)},${n(y1)}" fill="none" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M${n(x0)},${n(y0)} A${r},${r} 0 ${big} ${sw} ${n(x1)},${n(y1)}" fill="none" stroke="${col}" stroke-width="11" stroke-linecap="round"/><path d="M${n(ha[0])},${n(ha[1])} L${n(x1)},${n(y1)} L${n(hb[0])},${n(hb[1])}" fill="none" stroke="${INK}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
+
+
+// ---- batch 2026-11-16: snowman, mountain, greatWall, skyscraper, coin, radioWaves, molecules, tvSet, shadeHalf, tiltAxis
+function snowman(x, y, sc, t) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  s += `<circle cy="-90" r="110" fill="#fff" stroke="${INK}" stroke-width="8"/><circle cy="-260" r="80" fill="#fff" stroke="${INK}" stroke-width="8"/><circle cy="-390" r="60" fill="#fff" stroke="${INK}" stroke-width="8"/>`;
+  s += `<circle cx="-20" cy="-400" r="8" fill="${INK}"/><circle cx="20" cy="-400" r="8" fill="${INK}"/><path d="M0,-385 L50,-375 L0,-370 Z" fill="#ff8a3d" stroke="${INK}" stroke-width="4"/>`;
+  s += `<path d="M-50,-445 L50,-445 L40,-520 L-40,-520 Z" fill="${INK}"/><rect x="-62" y="-452" width="124" height="14" rx="6" fill="${INK}"/>`;
+  s += `<path d="M-78,-250 L-170,${n(-310 - 15 * Math.sin(t * 5))}" stroke="#7a4a2a" stroke-width="10" stroke-linecap="round"/><path d="M78,-250 L170,-300" stroke="#7a4a2a" stroke-width="10" stroke-linecap="round"/>`;
+  s += `<path d="M-58,-330 Q0,-300 58,-330" fill="none" stroke="#e8413a" stroke-width="22" stroke-linecap="round"/>`;
+  return s + `</g>`;
+}
+function mountain(x, baseY, w, h, col = '#8a7f74', snow = true, o = {}) {
+  const top = baseY - h, hw = w / 2;
+  let s = `<path d="M${n(x - hw)},${n(baseY)} L${n(x - hw * 0.35)},${n(baseY - h * 0.55)} L${n(x - hw * 0.15)},${n(baseY - h * 0.5)} L${n(x)},${n(top)} L${n(x + hw * 0.3)},${n(baseY - h * 0.6)} L${n(x + hw * 0.45)},${n(baseY - h * 0.52)} L${n(x + hw)},${n(baseY)} Z" fill="${col}" stroke="${INK}" stroke-width="9" stroke-linejoin="round"/>`;
+  if (snow) s += `<path d="M${n(x - hw * 0.22)},${n(top + h * 0.25)} L${n(x)},${n(top)} L${n(x + hw * 0.2)},${n(top + h * 0.22)} L${n(x + hw * 0.08)},${n(top + h * 0.28)} L${n(x - hw * 0.04)},${n(top + h * 0.2)} L${n(x - hw * 0.12)},${n(top + h * 0.3)} Z" fill="#fff" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  if (o.flag) s += `<line x1="${n(x)}" y1="${n(top)}" x2="${n(x)}" y2="${n(top - 90)}" stroke="${INK}" stroke-width="7"/><path d="M${n(x)},${n(top - 90)} L${n(x + 60)},${n(top - 72)} L${n(x)},${n(top - 54)} Z" fill="${o.flag}" stroke="${INK}" stroke-width="5"/>`;
+  return s;
+}
+function greatWall(y, t, col = '#c9a46a', amp = 60) {
+  let p = '', q = '';
+  for (let i = 0; i <= 24; i++) { const xx = -40 + i * 48, yy = y + amp * Math.sin(i * 0.6); p += `${i ? 'L' : 'M'}${n(xx)},${n(yy)} `; q = `L${n(xx)},${n(yy + 40)} ` + q; }
+  let s = `<path d="${p}${q}Z" fill="${col}" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+  for (let i = 0; i <= 24; i += 2) { const xx = -40 + i * 48, yy = y + amp * Math.sin(i * 0.6); s += `<rect x="${n(xx - 12)}" y="${n(yy - 22)}" width="24" height="24" fill="${col}" stroke="${INK}" stroke-width="5"/>`; }
+  for (const i of [4, 12, 20]) { const xx = -40 + i * 48, yy = y + amp * Math.sin(i * 0.6); s += `<rect x="${n(xx - 34)}" y="${n(yy - 70)}" width="68" height="100" fill="${col}" stroke="${INK}" stroke-width="7"/><rect x="${n(xx - 10)}" y="${n(yy - 45)}" width="20" height="30" fill="${INK}"/>`; }
+  return s;
+}
+function skyscraper(x, baseY, sc) {
+  let s = `<g transform="translate(${n(x)} ${n(baseY)}) scale(${n(sc)})">`;
+  s += `<rect x="-130" y="-700" width="260" height="700" fill="#b8c2d6" stroke="${INK}" stroke-width="9"/><rect x="-90" y="-900" width="180" height="200" fill="#c9d1e2" stroke="${INK}" stroke-width="9"/>`;
+  s += `<rect x="-55" y="-1040" width="110" height="140" fill="#d6dcea" stroke="${INK}" stroke-width="9"/><path d="M-30,-1040 L0,-1130 L30,-1040 Z" fill="#d6dcea" stroke="${INK}" stroke-width="8"/><line x1="0" y1="-1130" x2="0" y2="-1250" stroke="${INK}" stroke-width="10"/>`;
+  for (let r = 0; r < 12; r++) for (let c = 0; c < 4; c++) s += `<rect x="${-105 + c * 58}" y="${-670 + r * 55}" width="34" height="30" fill="${(r * 3 + c) % 5 ? '#ffe27a' : '#6b7896'}" stroke="${INK}" stroke-width="3"/>`;
+  return s + `</g>`;
+}
+function coin(x, y, r, flip = 0) {
+  const sy = Math.abs(Math.cos(flip)) * 0.85 + 0.15;
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(1 ${n(sy)})"><circle r="${n(r)}" fill="#c8743a" stroke="${INK}" stroke-width="${n(Math.max(5, r * 0.08))}"/><circle r="${n(r * 0.75)}" fill="none" stroke="#8f4f22" stroke-width="${n(r * 0.06)}"/><text x="0" y="${n(r * 0.28)}" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="${n(r * 0.8)}" fill="#8f4f22">1¢</text></g>`;
+}
+function radioWaves(x, y, t, dir = 1, col = '#ffd23f') {
+  let s = '';
+  for (let i = 0; i < 3; i++) { const u = (t * 1.2 + i / 3) % 1, r = 30 + 90 * u; s += `<path d="M${n(x + dir * r * 0.5)},${n(y - r)} Q${n(x + dir * r * 1.1)},${n(y)} ${n(x + dir * r * 0.5)},${n(y + r)}" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" opacity="${n(1 - u)}"/>`; }
+  return s;
+}
+function molecules(x, y, nn, gap, t, amp = 22, col = '#8fd3ff') {
+  let s = '';
+  for (let i = 0; i < nn; i++) { const ph = t * 6 - i * 0.9, dx = amp * Math.max(0, Math.sin(ph)); s += `<circle cx="${n(x + i * gap + dx)}" cy="${n(y)}" r="38" fill="${col}" stroke="${INK}" stroke-width="7"/><circle cx="${n(x + i * gap + dx - 12)}" cy="${n(y - 12)}" r="9" fill="#fff" opacity="0.7"/>`; }
+  return s;
+}
+function tvSet(x, y, w, h, inner = '') {
+  return `<g transform="translate(${n(x)} ${n(y)})"><rect x="${n(-w / 2 - 30)}" y="${n(-h / 2 - 30)}" width="${n(w + 60)}" height="${n(h + 60)}" rx="30" fill="#5a4636" stroke="${INK}" stroke-width="9"/><rect x="${n(-w / 2)}" y="${n(-h / 2)}" width="${n(w)}" height="${n(h)}" rx="16" fill="#101624" stroke="${INK}" stroke-width="7"/>${inner}<path d="M-60,${n(h / 2 + 30)} L-100,${n(h / 2 + 100)} M60,${n(h / 2 + 30)} L100,${n(h / 2 + 100)}" stroke="${INK}" stroke-width="10" stroke-linecap="round"/></g>`;
+}
+function shadeHalf(x, y, r, ang = 0, op = 0.7) {
+  const c = uid('sh');
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)})"><defs><clipPath id="${c}"><circle r="${n(r)}"/></clipPath></defs><rect x="0" y="${n(-r)}" width="${n(r)}" height="${n(2 * r)}" fill="#0b1030" opacity="${n(op)}" clip-path="url(#${c})"/></g>`;
+}
+function tiltAxis(x, y, r, ang = 23.4) {
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)})"><line x1="0" y1="${n(-r * 1.35)}" x2="0" y2="${n(r * 1.35)}" stroke="${INK}" stroke-width="14" stroke-linecap="round"/><line x1="0" y1="${n(-r * 1.35)}" x2="0" y2="${n(r * 1.35)}" stroke="#ff8a3d" stroke-width="6" stroke-linecap="round" stroke-dasharray="20 14"/></g>`;
+}
