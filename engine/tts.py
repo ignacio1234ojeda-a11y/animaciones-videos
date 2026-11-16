@@ -25,7 +25,7 @@ def lookup(w):
     return None
 
 
-MANUAL = {"MRI": "ˌɛmˌɑɹˈI"}
+MANUAL = {"MRI": "ˌɛmˌɑɹˈI", "Mauna": "mˈWnə"}
 
 
 def word_ph(w):
