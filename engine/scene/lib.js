@@ -1895,3 +1895,63 @@ function boxRing(t) {
   s += `<rect x="60" y="900" width="40" height="420" fill="#ccc" stroke="${INK}" stroke-width="7"/><rect x="980" y="900" width="40" height="420" fill="#ccc" stroke="${INK}" stroke-width="7"/>`;
   return s;
 }
+
+// ====================================================== HELPERS from the old-times batch (2026-11-16)
+// brickRow(t, night, gy) street of houses, window(x,y,sc,lit), longPole(x0,y0,len,ang), lobster(x,y,sc,t,ang,col),
+// prisonBars(x,y,w,h), plate(x,y,sc), bicorne(x,y,sc,ang), heightChart(x,y,sc), penny(x,y,r), peaShot(x0,y0,x1,y1,u)
+function brickRow(t, night = 1, gy = 1300) {
+  let s = `<rect width="${W}" height="${H}" fill="${night ? '#24294d' : '#bfe3ff'}"/>`;
+  if (night) for (let i = 0; i < 25; i++) { const r = rng(i * 5 + 9); s += `<circle cx="${n(r() * W)}" cy="${n(r() * 300)}" r="${n(2 + r() * 3)}" fill="#fff" opacity="${n(0.4 + 0.5 * Math.abs(Math.sin(t * 1.4 + i)))}"/>`; }
+  s += `<rect x="0" y="340" width="${W}" height="${gy - 340}" fill="#a5523a" stroke="${INK}" stroke-width="8"/>`;
+  for (let y = 380; y < gy; y += 60) for (let x = (y / 60) % 2 ? 0 : 60; x < W; x += 120) s += `<rect x="${x}" y="${y}" width="110" height="50" fill="none" stroke="#8a4230" stroke-width="5"/>`;
+  s += `<path d="M-20,340 L540,170 L1100,340 Z" fill="#4a3b52" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += `<rect x="0" y="${gy}" width="${W}" height="${H - gy}" fill="#6b6f7a"/><line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="${INK}" stroke-width="8"/>`;
+  return s;
+}
+function window_(x, y, sc, lit = 0) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  s += `<rect x="-90" y="-120" width="180" height="240" fill="${lit ? '#ffe28a' : '#2b3a5c'}" stroke="${INK}" stroke-width="9"/>`;
+  s += `<path d="M0,-120 L0,120 M-90,0 L90,0" stroke="${INK}" stroke-width="8"/><rect x="-104" y="118" width="208" height="20" fill="#ddd" stroke="${INK}" stroke-width="6"/>`;
+  return s + `</g>`;
+}
+function longPole(x0, y0, len, ang) {
+  const x1 = x0 + len * Math.cos(ang * D2R), y1 = y0 + len * Math.sin(ang * D2R);
+  return `<line x1="${n(x0)}" y1="${n(y0)}" x2="${n(x1)}" y2="${n(y1)}" stroke="${INK}" stroke-width="20" stroke-linecap="round"/><line x1="${n(x0)}" y1="${n(y0)}" x2="${n(x1)}" y2="${n(y1)}" stroke="#d9b36b" stroke-width="10" stroke-linecap="round"/><circle cx="${n(x1)}" cy="${n(y1)}" r="16" fill="#8a5a2b" stroke="${INK}" stroke-width="6"/>`;
+}
+function peaShot(x0, y0, x1, y1, u) {
+  if (u <= 0 || u >= 1) return '';
+  const x = lerp(x0, x1, u), y = lerp(y0, y1, u) - 80 * Math.sin(Math.PI * u);
+  return `<circle cx="${n(x)}" cy="${n(y)}" r="14" fill="#7bc043" stroke="${INK}" stroke-width="5"/>`;
+}
+function lobster(x, y, sc, t, ang = 0, col = '#e8413a') {
+  const w = Math.sin(t * 6) * 8;
+  let s = `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})">`;
+  for (const sd of [-1, 1]) {
+    for (let i = 0; i < 3; i++) s += `<path d="M${sd * 30},${-10 + i * 30} L${sd * 90},${10 + i * 34}" stroke="${INK}" stroke-width="8" stroke-linecap="round"/>`;
+    s += `<path d="M${sd * 30},-60 Q${sd * 90},-110 ${sd * 80},-170" fill="none" stroke="${col}" stroke-width="22" stroke-linecap="round"/><path d="M${sd * 30},-60 Q${sd * 90},-110 ${sd * 80},-170" fill="none" stroke="${INK}" stroke-width="30" stroke-linecap="round" opacity="0" />`;
+    s += `<g transform="translate(${sd * 80} -190) rotate(${n(sd * (10 + w))})"><path d="M0,30 Q${sd * -50},-10 ${sd * -20},-70 L0,-20 L${sd * 10},-75 Q${sd * 50},-20 0,30 Z" fill="${col}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/></g>`;
+    s += `<path d="M${sd * 14},-110 Q${sd * 60},-260 ${sd * 140},-300" fill="none" stroke="${INK}" stroke-width="5"/>`;
+  }
+  s += `<path d="M-40,-80 Q-48,30 -30,90 L30,90 Q48,30 40,-80 Q0,-120 -40,-80 Z" fill="${col}" stroke="${INK}" stroke-width="8"/>`;
+  s += `<path d="M-30,90 L-26,130 L26,130 L30,90 M-26,130 L-22,165 L22,165 L26,130 M-22,165 L-40,210 L40,210 L22,165" fill="${col}" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+  s += `<circle cx="-16" cy="-70" r="9" fill="${INK}"/><circle cx="16" cy="-70" r="9" fill="${INK}"/><circle cx="-13" cy="-73" r="3" fill="#fff"/><circle cx="19" cy="-73" r="3" fill="#fff"/>`;
+  return s + `</g>`;
+}
+function prisonBars(x, y, w, h) {
+  let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${INK}" stroke-width="10"/>`;
+  for (let bx = x + 60; bx < x + w; bx += 90) s += `<rect x="${bx - 9}" y="${y}" width="18" height="${h}" fill="#7d8592" stroke="${INK}" stroke-width="5"/>`;
+  s += `<rect x="${x}" y="${y + h * 0.3}" width="${w}" height="20" fill="#7d8592" stroke="${INK}" stroke-width="5"/>`;
+  return s;
+}
+function plate(x, y, sc) {
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><ellipse cx="0" cy="0" rx="230" ry="70" fill="#fff" stroke="${INK}" stroke-width="8"/><ellipse cx="0" cy="-4" rx="160" ry="44" fill="none" stroke="#d5dbe4" stroke-width="6"/></g>`;
+}
+function bicorne(x, y, sc, ang = 0) {
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><path d="M-170,20 Q-120,-30 -60,-80 Q0,-120 60,-80 Q120,-30 170,20 Q0,-10 -170,20 Z" fill="#1f2433" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><circle cx="40" cy="-40" r="22" fill="#3d7bd9" stroke="#fff" stroke-width="6"/><circle cx="40" cy="-40" r="8" fill="#e8413a"/></g>`;
+}
+function heightChart(x, y, sc) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><rect x="-60" y="-1000" width="120" height="1000" fill="#fff8e6" stroke="${INK}" stroke-width="7"/>`;
+  for (let i = 0; i <= 20; i++) { const yy = -i * 50; s += `<line x1="-60" y1="${yy}" x2="${i % 2 ? -25 : 0}" y2="${yy}" stroke="${INK}" stroke-width="5"/>`; }
+  return s + `</g>`;
+}
+function penny(x, y, r) { return coin(x, y, r, 0); }
