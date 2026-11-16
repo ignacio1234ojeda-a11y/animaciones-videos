@@ -1819,3 +1819,79 @@ function shadeHalf(x, y, r, ang = 0, op = 0.7) {
 function tiltAxis(x, y, r, ang = 23.4) {
   return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)})"><line x1="0" y1="${n(-r * 1.35)}" x2="0" y2="${n(r * 1.35)}" stroke="${INK}" stroke-width="14" stroke-linecap="round"/><line x1="0" y1="${n(-r * 1.35)}" x2="0" y2="${n(r * 1.35)}" stroke="#ff8a3d" stroke-width="6" stroke-linecap="round" stroke-dasharray="20 14"/></g>`;
 }
+
+// ====================================================== HELPERS from the safety-coffin short (2026-11-16)
+// graveBg(t, night) cut-away ground, tombstone(x,y,sc,text), coffin(x,y,sc,t,{awake}), bell(x,y,sc,swing),
+// pullString(x0,y0,x1,y1,tug), airTube(x,yTop,yBot), flag(x,y,sc,up,t), boxingGlove(x,y,sc,ang,col), boxRing(t)
+function graveBg(t, night = 0, gy = 900) {
+  const sky = night ? '#2a2f55' : '#bfe3ff';
+  let s = `<rect width="${W}" height="${H}" fill="${sky}"/>`;
+  if (night) for (let i = 0; i < 30; i++) { const r = rng(i * 7 + 3); s += `<circle cx="${n(r() * W)}" cy="${n(r() * gy * 0.8)}" r="${n(2 + r() * 3)}" fill="#fff" opacity="${n(0.4 + 0.5 * Math.abs(Math.sin(t * 1.3 + i)))}"/>`; }
+  s += `<rect x="0" y="${gy}" width="${W}" height="${H - gy}" fill="#7a5233"/>`;
+  for (let i = 0; i < 26; i++) { const r = rng(i * 11 + 1); s += `<ellipse cx="${n(r() * W)}" cy="${n(gy + 60 + r() * (H - gy - 80))}" rx="${n(10 + r() * 22)}" ry="${n(7 + r() * 12)}" fill="#5e3d24" opacity="0.8"/>`; }
+  s += `<rect x="0" y="${gy - 30}" width="${W}" height="44" fill="#4caf50" stroke="${INK}" stroke-width="7"/>`;
+  return s;
+}
+function tombstone(x, y, sc, text = 'RIP', ang = 0) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})">`;
+  s += `<path d="M-110,0 L-110,-200 Q-110,-300 0,-300 Q110,-300 110,-200 L110,0 Z" fill="#b8bec9" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += `<path d="M70,-40 L70,-190 Q70,-250 10,-262" fill="none" stroke="#9aa1ad" stroke-width="10" stroke-linecap="round"/>`;
+  s += txt(0, -150, text, 70, '#5b6270');
+  return s + `</g>`;
+}
+function coffin(x, y, sc, t, o = {}) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  s += `<path d="M-300,-20 L-250,-90 L260,-90 L300,0 L260,90 L-250,90 Z" fill="#a0612e" stroke="${INK}" stroke-width="9" stroke-linejoin="round"/>`;
+  s += `<path d="M-255,-50 L-220,-60 L235,-60 L262,0 L235,60 L-220,60 L-255,40 Z" fill="#3a2414"/>`;
+  // occupant head (cut-away)
+  const hx = -170;
+  s += `<circle cx="${hx}" cy="0" r="52" fill="#fff" stroke="${INK}" stroke-width="7"/>`;
+  if (o.awake) {
+    const by = (t % 2.6) > 2.45;
+    for (const ex of [-18, 18]) s += by ? `<path d="M${hx + ex - 9},-8 L${hx + ex + 9},-8" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>` : `<ellipse cx="${hx + ex}" cy="-8" rx="8" ry="12" fill="${INK}"/><circle cx="${hx + ex + 2}" cy="-12" r="3" fill="#fff"/>`;
+    s += `<ellipse cx="${hx}" cy="24" rx="9" ry="11" fill="${INK}"/>`;
+  } else {
+    for (const ex of [-18, 18]) s += `<path d="M${hx + ex - 10},-8 L${hx + ex + 10},-8" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
+  }
+  s += `<path d="M-115,-40 Q60,-55 200,-30 L200,40 Q60,55 -115,40 Z" fill="#e6e9ef" stroke="${INK}" stroke-width="6"/>`;
+  return s + `</g>`;
+}
+function bell(x, y, sc, swing = 0) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  s += `<rect x="-6" y="-150" width="12" height="160" fill="#6b4a2b" stroke="${INK}" stroke-width="5"/>`;
+  s += `<path d="M-90,-150 L90,-150" stroke="${INK}" stroke-width="12" stroke-linecap="round"/>`;
+  s += `<g transform="translate(60 -150) rotate(${n(swing)})">`;
+  s += `<path d="M0,0 L0,14" stroke="${INK}" stroke-width="8"/>`;
+  s += `<path d="M-42,80 Q-40,14 0,12 Q40,14 42,80 L54,92 L-54,92 Z" fill="#f5c542" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+  s += `<path d="M-22,70 Q-20,32 -4,26" fill="none" stroke="#fff3b0" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<circle cx="${n(-swing * 0.3)}" cy="100" r="11" fill="${INK}"/></g>`;
+  return s + `</g>`;
+}
+function pullString(x0, y0, x1, y1, tug = 0) {
+  const mx = (x0 + x1) / 2 + 40 * (1 - tug), my = (y0 + y1) / 2;
+  return `<path d="M${n(x0)},${n(y0)} Q${n(mx)},${n(my)} ${n(x1)},${n(y1)}" fill="none" stroke="#f3e6c8" stroke-width="8" stroke-linecap="round"/><path d="M${n(x0)},${n(y0)} Q${n(mx)},${n(my)} ${n(x1)},${n(y1)}" fill="none" stroke="${INK}" stroke-width="2" stroke-dasharray="6 10"/>`;
+}
+function airTube(x, yTop, yBot) {
+  return `<rect x="${n(x - 18)}" y="${n(yTop)}" width="36" height="${n(yBot - yTop)}" fill="#9aa1ad" stroke="${INK}" stroke-width="7"/><path d="M${n(x - 18)},${n(yTop)} L${n(x - 18)},${n(yTop - 40)} Q${n(x - 18)},${n(yTop - 70)} ${n(x + 30)},${n(yTop - 70)}" fill="none" stroke="${INK}" stroke-width="7"/><path d="M${n(x + 18)},${n(yTop)} L${n(x + 18)},${n(yTop - 34)} L${n(x + 30)},${n(yTop - 34)}" fill="none" stroke="${INK}" stroke-width="7"/><rect x="${n(x - 18)}" y="${n(yTop - 70)}" width="50" height="36" fill="#9aa1ad"/><path d="M${n(x - 18)},${n(yTop - 70)} L${n(x + 32)},${n(yTop - 70)} M${n(x - 18)},${n(yTop - 34)} L${n(x + 32)},${n(yTop - 34)} M${n(x - 18)},${n(yTop - 70)} L${n(x - 18)},${n(yTop)} M${n(x + 18)},${n(yTop - 34)} L${n(x + 18)},${n(yTop)}" stroke="${INK}" stroke-width="7" fill="none"/>`;
+}
+function flag(x, y, sc, up, t, col = '#e8413a') {
+  const h = 260 * sc, fy = y - lerp(40, h - 10, clamp(up));
+  const w = Math.sin(t * 8) * 10;
+  return `<line x1="${n(x)}" y1="${n(y)}" x2="${n(x)}" y2="${n(y - h)}" stroke="${INK}" stroke-width="10" stroke-linecap="round"/><path d="M${n(x)},${n(fy)} Q${n(x + 60 * sc)},${n(fy - 14 + w)} ${n(x + 120 * sc)},${n(fy + 6)} L${n(x + 120 * sc)},${n(fy + 76 * sc)} Q${n(x + 60 * sc)},${n(fy + 60 * sc + w)} ${n(x)},${n(fy + 70 * sc)} Z" fill="${col}" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+}
+function boxingGlove(x, y, sc, ang = 0, col = '#e8413a') {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})">`;
+  s += `<rect x="-70" y="60" width="140" height="90" rx="20" fill="#fff" stroke="${INK}" stroke-width="8"/>`;
+  s += `<path d="M-90,70 Q-120,-40 -60,-110 Q0,-150 70,-110 Q120,-70 100,0 Q90,60 60,70 Z" fill="${col}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += `<path d="M-100,20 Q-150,0 -130,-50 Q-110,-80 -70,-50" fill="${col}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += `<path d="M-40,-90 Q10,-115 50,-85" fill="none" stroke="#ff9a90" stroke-width="12" stroke-linecap="round"/>`;
+  return s + `</g>`;
+}
+function boxRing(t) {
+  let s = `<rect width="${W}" height="${H}" fill="#2b2140"/>`;
+  s += `<path d="M0,0 L540,0 L380,1300 Z" fill="#fff" opacity="0.06"/><path d="M1080,0 L540,0 L700,1300 Z" fill="#fff" opacity="0.06"/>`;
+  s += `<rect x="0" y="1300" width="${W}" height="620" fill="#3d7bd9"/>`;
+  for (const [yy, c] of [[1000, '#e8413a'], [1110, '#fff'], [1220, '#e8413a']]) s += `<rect x="-10" y="${yy}" width="${W + 20}" height="22" fill="${c}" stroke="${INK}" stroke-width="6"/>`;
+  s += `<rect x="60" y="900" width="40" height="420" fill="#ccc" stroke="${INK}" stroke-width="7"/><rect x="980" y="900" width="40" height="420" fill="#ccc" stroke="${INK}" stroke-width="7"/>`;
+  return s;
+}
