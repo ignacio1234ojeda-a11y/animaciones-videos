@@ -1,7 +1,7 @@
 """One-command Short builder (spec mode).
 
 python3 make.py spec.py            -> voice (if script changed) + captions + scene files + cues + QA sheet qa/sheet.png
-python3 make.py spec.py --video X  -> same, then mix + 4K render + out/X-1080p.mp4
+python3 make.py spec.py --video X  -> same, then mix + native 1080p60 render -> out/X-1080p.mp4 (--hq = old 4K path)
 
 spec.py holds SCRIPT = [...lines...] and SHOTS = [shot(...), ...] built with the helpers below.
 Anchors ('at', shot start, ch keys) are words of the script: 'Sun' = next word starting with "sun" after the shot start,
@@ -99,7 +99,7 @@ def main():
     subprocess.run(["python3", "captions.py", "vo/take1.json"], cwd=ROOT, check=True, capture_output=True)
     lines = json.load(open(vo / "take1.json"))
     W = words_from(lines); res = resolver(W)
-    END = round(lines[-1]["end"] + OFF + 0.7, 2)
+    END = round(lines[-1]["end"] + OFF + 0.4, 2)  # short tail = cleaner loop back to the hook
 
     # mouth envelope, 60 fps, on the video clock
     with wave.open(str(vo / "take1.wav")) as wf:
@@ -145,8 +145,11 @@ def main():
     if "--video" in opt:
         name = opt[opt.index("--video") + 1]
         subprocess.run(["python3", "sfx.py", "out/mix.wav", "--vo", "vo/take1.wav", "--vo-at", str(OFF)], cwd=ROOT, check=True)
-        subprocess.run(["python3", "render.py", "video", f"out/{name}-4K.mp4", "--fps", "60", "--scale", "2", "--crf", "16", "--audio", "out/mix.wav"], cwd=ROOT, check=True)
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"out/{name}-4K.mp4", "-vf", "scale=1080:1920:flags=lanczos", "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-c:a", "copy", f"out/{name}-1080p.mp4"], cwd=ROOT, check=True)
+        if "--hq" in opt:  # old path: 4K render + downscale (~4x slower, barely visible difference on phones)
+            subprocess.run(["python3", "render.py", "video", f"out/{name}-4K.mp4", "--fps", "60", "--scale", "2", "--crf", "16", "--audio", "out/mix.wav"], cwd=ROOT, check=True)
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"out/{name}-4K.mp4", "-vf", "scale=1080:1920:flags=lanczos", "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-c:a", "copy", f"out/{name}-1080p.mp4"], cwd=ROOT, check=True)
+        else:  # default: native 1080p render, one encode
+            subprocess.run(["python3", "render.py", "video", f"out/{name}-1080p.mp4", "--fps", "60", "--scale", "1", "--crf", "18", "--audio", "out/mix.wav"], cwd=ROOT, check=True)
         print("video out/" + name + "-1080p.mp4")
     else:
         ts = []

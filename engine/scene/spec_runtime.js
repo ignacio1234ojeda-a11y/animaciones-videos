@@ -91,7 +91,8 @@ function drawShot(i, t) {
   const t0 = sh.t0, t1 = i + 1 < SPEC.shots.length ? SPEC.shots[i + 1].t0 : T.END;
   let body = '';
   for (const it of sh.items) body += drawItem(it, t, T);
-  const z = lerp(sh.cam[0], sh.cam[1], eio(prog(t, t0, t1)));
+  // slow drift over the shot + a quick 'punch' settle right after each cut (free energy at every cut)
+  const z = lerp(sh.cam[0], sh.cam[1], eio(prog(t, t0, t1))) * (1 + 0.07 * (1 - eo(prog(t, t0 + (i ? 0.18 : 0), t0 + (i ? 0.55 : 0.4)))));
   return bgOf(sh.bg, t) + `<g transform="translate(${sh.focus[0]} ${sh.focus[1]}) scale(${n(z)}) translate(${-sh.focus[0]} ${-sh.focus[1]})">${body}</g>`;
 }
 

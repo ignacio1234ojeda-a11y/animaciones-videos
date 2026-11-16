@@ -45,6 +45,7 @@ def main():
             t0 = starts[g[0]] - 0.03
             t1 = starts[groups[k + 1][0]] - 0.03 if k + 1 < len(groups) else L["end"] + off + 0.25
             chunks.append({"t0": round(t0, 3), "t1": round(t1, 3), "text": " ".join(words[j] for j in g)})
+    if chunks: chunks[0]["t0"] = 0.0  # words on screen from frame 1 (no empty first frame = fewer swipes)
     for a, b in zip(chunks, chunks[1:]):
         a["t1"] = min(a["t1"], b["t0"])
     out = ROOT / "scene" / "captions.js"

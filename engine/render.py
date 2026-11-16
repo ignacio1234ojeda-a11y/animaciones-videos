@@ -30,7 +30,8 @@ def open_page(p, scale=1):
 
 def shot(pg, t, fmt="png"):
     pg.evaluate(f"window.renderAt({t})")
-    return pg.locator("#stage").screenshot(type=fmt, animations="disabled")
+    # page clip is ~2x faster than locator.screenshot (no element lookup / scroll per frame)
+    return pg.screenshot(type=fmt, clip=dict(x=0, y=0, width=1080, height=1920), animations="disabled")
 
 
 def end_time(pg):

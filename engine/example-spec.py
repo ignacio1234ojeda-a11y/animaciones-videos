@@ -14,7 +14,7 @@ SHOTS = [
          guy(x=540, y=1480, sc=2.1, expr="curious", ch=[("longer", dict(expr="confused", pose="think"))]),
          art("calendarPage(260, 640, 1.0*k, 'DAY', '1', '#4fa3e0', -6)", at="day"),
          art("calendarPage(820, 640, 1.0*k, 'YEAR', '1', '#e8413a', 6)", at="year"),
-         label("DAY > YEAR ?", "longer", y=230),
+         label("DAY > YEAR ?", None, y=230)  # hook visible from frame 1,
          ),
     shot("On",
          art(f"planet(540, 900, 330*k, {VEN}, t, {{face:'happy', spin:0.05}})", at="On"),

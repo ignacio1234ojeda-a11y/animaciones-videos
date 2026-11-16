@@ -1131,14 +1131,18 @@ function shakeAt(t) {
     A * (Math.sin(2 * Math.PI * 11.7 * t + 2) + 0.5 * Math.sin(2 * Math.PI * 5.3 * t)) / 1.5,
   ];
 }
-const CAP_Y = 1796, CAP_SIZE = 64;
+const CAP_Y = 1796, CAP_SIZE = 76;
 function captions(t) {
   for (const c of (window.CAPTIONS || [])) {
     if (t >= c.t0 && t < c.t1) {
       const str = c.text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-      const base = `x="540" y="${CAP_Y}" text-anchor="middle" font-family="Poppins" font-weight="700" font-style="italic" font-size="${CAP_SIZE}" letter-spacing="1.5"`;
-      return `<text ${base} transform="translate(4 5)" fill="${INK}" stroke="${INK}" stroke-width="5" stroke-linejoin="round">${str}</text>` +
-        `<text ${base} fill="#f8f20f" stroke="${INK}" stroke-width="4" stroke-linejoin="round" paint-order="stroke">${str}</text>`;
+      // pop-in: each 2-3 word chunk springs in (0.82 -> 1.08 -> 1) so the eye keeps getting a new "beat"
+      const u = clamp((t - c.t0) / 0.16, 0, 1);
+      const s2 = u < 1 ? lerp(0.82, 1.08, Math.min(1, u / 0.6)) - (u > 0.6 ? 0.08 * (u - 0.6) / 0.4 : 0) : 1;
+      const base = `x="0" y="0" text-anchor="middle" font-family="Poppins" font-weight="700" font-style="italic" font-size="${CAP_SIZE}" letter-spacing="1.5"`;
+      return `<g transform="translate(540 ${CAP_Y}) scale(${n(s2)})">` +
+        `<text ${base} transform="translate(4 6)" fill="${INK}" stroke="${INK}" stroke-width="6" stroke-linejoin="round">${str}</text>` +
+        `<text ${base} fill="#f8f20f" stroke="${INK}" stroke-width="5" stroke-linejoin="round" paint-order="stroke">${str}</text></g>`;
     }
   }
   return '';
