@@ -1955,3 +1955,58 @@ function heightChart(x, y, sc) {
   return s + `</g>`;
 }
 function penny(x, y, r) { return coin(x, y, r, 0); }
+
+// ====================================================== HELPERS: vikings + pirates (2026-11-16)
+// Head-wear sits on guy(x, y, sc): pass (x, y, sc) of the guy.
+// hornHelmet(x,y,sc,horns=1), ironHelmet(x,y,sc), eyePatch(x,y,sc,side) side 1 = right eye, -1 = left eye,
+// bandana(x,y,sc,col), operaStage(t, open), shipDeck(t, dark), lantern(x,y,sc,t)
+function hornHelmet(gx, gy, sc, horns = 1) {
+  let s = `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)}) translate(0 -24)">`;
+  if (horns) for (const sd of [-1, 1]) s += `<path d="M${sd * 60},-340 Q${sd * 120},-350 ${sd * 125},-430 Q${sd * 128},-470 ${sd * 110},-490 Q${sd * 100},-420 ${sd * 50},-372 Z" fill="#f3ead2" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+  s += `<path d="M-78,-318 Q-80,-392 0,-396 Q80,-392 78,-318 Z" fill="#9aa1ad" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += `<rect x="-84" y="-330" width="168" height="22" rx="8" fill="#7d8592" stroke="${INK}" stroke-width="7"/>`;
+  s += `<path d="M-40,-385 Q-20,-394 0,-394" fill="none" stroke="#d5dbe4" stroke-width="8" stroke-linecap="round"/>`;
+  return s + `</g>`;
+}
+function ironHelmet(gx, gy, sc) {
+  let s = hornHelmet(gx, gy, sc, 0);
+  s += `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)}) translate(0 -24)"><rect x="-26" y="-316" width="16" height="44" rx="6" fill="#7d8592" stroke="${INK}" stroke-width="6"/><path d="M0,-394 L0,-332" stroke="${INK}" stroke-width="6"/></g>`;
+  return s;
+}
+function eyePatch(gx, gy, sc, side = 1) {
+  const ex = side > 0 ? 0 : -34;
+  return `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)})"><path d="M-72,-338 L${ex},-306 L72,-280" fill="none" stroke="${INK}" stroke-width="7"/><ellipse cx="${ex}" cy="-304" rx="22" ry="20" fill="${INK}"/></g>`;
+}
+function bandana(gx, gy, sc, col = '#e8413a') {
+  return `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)})"><path d="M-74,-320 Q-76,-382 0,-384 Q76,-382 74,-320 Q0,-344 -74,-320 Z" fill="${col}" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><path d="M70,-330 L110,-300 L96,-350 Z" fill="${col}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/><circle cx="-30" cy="-362" r="7" fill="#fff"/><circle cx="20" cy="-366" r="7" fill="#fff"/></g>`;
+}
+function operaStage(t, open = 1) {
+  let s = `<rect width="${W}" height="${H}" fill="#2b1a2e"/>`;
+  s += `<ellipse cx="540" cy="1500" rx="420" ry="90" fill="#fff6c9" opacity="0.25"/>`;
+  s += `<rect x="0" y="1480" width="${W}" height="440" fill="#7a4a2a" stroke="${INK}" stroke-width="8"/>`;
+  const cw = lerp(540, 200, clamp(open));
+  for (const sd of [0, 1]) {
+    const x0 = sd ? W - cw : 0;
+    s += `<rect x="${n(x0)}" y="0" width="${n(cw)}" height="1500" fill="#c0283a" stroke="${INK}" stroke-width="8"/>`;
+    for (let i = 1; i < 5; i++) s += `<line x1="${n(x0 + cw * i / 5)}" y1="0" x2="${n(x0 + cw * i / 5)}" y2="1500" stroke="#8e1b2a" stroke-width="10"/>`;
+  }
+  s += `<path d="M0,0 L${W},0 L${W},150 Q810,220 540,150 Q270,220 0,150 Z" fill="#a51f30" stroke="${INK}" stroke-width="8"/>`;
+  return s;
+}
+function shipDeck(t, dark = 0) {
+  if (dark) {
+    let s = `<rect width="${W}" height="${H}" fill="#1a1410"/>`;
+    for (let y = 300; y < H; y += 110) s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#2c2018" stroke-width="10"/>`;
+    return s;
+  }
+  let s = `<rect width="${W}" height="${H}" fill="#9fd6ff"/><circle cx="880" cy="440" r="90" fill="#ffe14d" stroke="${INK}" stroke-width="7"/>`;
+  s += `<path d="M0,900 Q135,${n(870 + 10 * Math.sin(t * 2))} 270,900 T540,900 T810,900 T1080,900 L1080,1000 L0,1000 Z" fill="#3d7bd9"/>`;
+  s += `<rect x="0" y="1000" width="${W}" height="920" fill="#a0612e" stroke="${INK}" stroke-width="8"/>`;
+  for (let y = 1080; y < H; y += 90) s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#7a4a22" stroke-width="7"/>`;
+  s += `<rect x="0" y="960" width="${W}" height="50" fill="#7a4a22" stroke="${INK}" stroke-width="8"/>`;
+  return s;
+}
+function lantern(x, y, sc, t) {
+  const g = 0.5 + 0.15 * Math.sin(t * 9);
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><circle cx="0" cy="40" r="140" fill="#ffd27a" opacity="${n(g * 0.35)}"/><path d="M-40,-20 L40,-20 L30,100 L-30,100 Z" fill="#ffe28a" stroke="${INK}" stroke-width="7"/><rect x="-48" y="-40" width="96" height="24" fill="#555" stroke="${INK}" stroke-width="6"/><path d="M-20,-40 Q0,-80 20,-40" fill="none" stroke="${INK}" stroke-width="6"/></g>`;
+}
