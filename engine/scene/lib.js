@@ -2105,3 +2105,95 @@ function speedLines(x, y, sc, t) {
   for (let i = 0; i < 6; i++) { const yy = -340 + i * 60, off = ((t * 900 + i * 137) % 300); s += `<line x1="${n(-260 - off)}" y1="${yy}" x2="${n(-120 - off)}" y2="${yy}" stroke="${INK}" stroke-width="8" stroke-linecap="round" opacity="0.5"/>`; }
   return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${s}</g>`;
 }
+
+// ---- bat / bird / gum shorts (2026-11-18) ----
+function bat(x, y, sc, o = {}) {
+  // centered on the body. o: t, flap 0..1, eyes 'big'|'shades'|'normal', shout 0..1, col
+  const t = o.t || 0, col = o.col || '#5b4a72', dk = '#3d3150', flap = o.flap === undefined ? 1 : o.flap;
+  const f = flap * Math.sin(t * 14);
+  const wing = (m) => `<g transform="scale(${m} 1) rotate(${n(-25 * f)} 30 -20)"><path d="M30,-30 L235,-110 Q215,-55 185,-48 Q170,-10 135,-16 Q118,22 78,14 Q58,30 30,20 Z" fill="${dk}" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/><path d="M40,-20 L200,-80 M45,-10 L140,-20 M42,0 L80,12" stroke="${col}" stroke-width="5"/></g>`;
+  let s = wing(1) + wing(-1);
+  s += `<ellipse cx="0" cy="0" rx="55" ry="72" fill="${col}" stroke="${INK}" stroke-width="${OUT}"/><ellipse cx="0" cy="14" rx="30" ry="40" fill="#8a77a3"/>`;
+  s += `<path d="M-50,-110 L-62,-190 L-14,-128 Z M50,-110 L62,-190 L14,-128 Z" fill="${col}" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
+  s += `<path d="M-46,-124 L-54,-168 L-24,-132 Z M46,-124 L54,-168 L24,-132 Z" fill="#f2a7c3"/>`;
+  s += `<circle cx="0" cy="-95" r="60" fill="${col}" stroke="${INK}" stroke-width="${OUT}"/>`;
+  const ey = o.eyes || 'normal';
+  if (ey === 'shades') s += `<path d="M-52,-112 L52,-112 L46,-86 Q26,-74 8,-90 L-8,-90 Q-26,-74 -46,-86 Z" fill="${INK}"/><path d="M-36,-106 L-24,-106" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`;
+  else { const r = ey === 'big' ? 22 : 14; for (const ex of [-24, 24]) s += `<circle cx="${ex}" cy="-102" r="${r}" fill="#fff" stroke="${INK}" stroke-width="5"/><circle cx="${ex + 3}" cy="-100" r="${r * 0.5}" fill="${INK}"/><circle cx="${ex + 7}" cy="-106" r="${r * 0.18}" fill="#fff"/>`; }
+  s += `<ellipse cx="0" cy="-72" rx="9" ry="6" fill="${INK}"/>`;
+  const sh = clamp(o.shout || 0);
+  s += sh > 0 ? `<ellipse cx="0" cy="-50" rx="${n(16 + 8 * sh)}" ry="${n(8 + 16 * sh)}" fill="#7a1f1f" stroke="${INK}" stroke-width="5"/>`
+    : `<path d="M-18,-56 Q0,-42 18,-56" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><path d="M-10,-52 l4,9 l4,-8 M2,-52 l4,9 l4,-8" fill="#fff" stroke="${INK}" stroke-width="2.5"/>`;
+  return `<g transform="translate(${n(x)} ${n(y + 10 * Math.sin(t * 3))}) scale(${n(sc)})">${s}</g>`;
+}
+function mango(x, y, sc, ang = 0) {
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><path d="M0,-70 C60,-70 80,10 40,60 C10,90 -50,70 -55,10 C-60,-40 -40,-70 0,-70 Z" fill="#ffb02e" stroke="${INK}" stroke-width="${OUT}"/><path d="M10,-60 C40,-50 52,-10 40,20" fill="none" stroke="#ff7a2e" stroke-width="14" stroke-linecap="round" opacity="0.6"/><path d="M0,-70 Q30,-110 70,-100 Q40,-70 0,-70 Z" fill="#5fae4a" stroke="${INK}" stroke-width="5"/></g>`;
+}
+function bug(x, y, sc, t = 0) {
+  const w = 0.5 + 0.5 * Math.abs(Math.sin(t * 40));
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><ellipse cx="-14" cy="-22" rx="22" ry="${n(14 * w)}" fill="#dff3ff" stroke="${INK}" stroke-width="4" opacity="0.85"/><ellipse cx="14" cy="-22" rx="22" ry="${n(14 * w)}" fill="#dff3ff" stroke="${INK}" stroke-width="4" opacity="0.85"/><ellipse cx="0" cy="0" rx="20" ry="26" fill="#3a3a3a" stroke="${INK}" stroke-width="5"/><circle cx="-7" cy="-8" r="5" fill="#fff"/><circle cx="7" cy="-8" r="5" fill="#fff"/></g>`;
+}
+function birdie(x, y, sc, o = {}) {
+  // feet at (x,y), faces right. o: t, baby, col, open 0..1 (beak), flap 0..1, mood 'happy'|'sniff'|'worried', flip
+  const t = o.t || 0, col = o.col || (o.baby ? '#ffd86b' : '#5b9bd5'), bel = o.baby ? '#fff2b8' : '#f6e7c8';
+  const hop = o.hop ? 14 * Math.abs(Math.sin(t * 6)) : 0;
+  let s = '';
+  if (!o.baby) s += `<path d="M-6,-20 L-14,0 M14,-20 L22,0" stroke="#e79a35" stroke-width="8" stroke-linecap="round"/>`;
+  s += `<path d="M-70,-70 L-125,-95 L-115,-55 Z" fill="${col}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  s += `<circle cx="0" cy="-80" r="80" fill="${col}" stroke="${INK}" stroke-width="${OUT}"/><ellipse cx="18" cy="-52" rx="50" ry="40" fill="${bel}"/>`;
+  if (o.baby) s += `<path d="M-6,-158 q-8,-30 6,-34 M6,-158 q4,-34 20,-30 M-14,-156 q-26,-20 -18,-36" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
+  const fl = (o.flap || 0) * Math.sin(t * 16);
+  s += `<ellipse cx="-20" cy="-70" rx="46" ry="30" transform="rotate(${n(-20 - 40 * fl)} 10 -80)" fill="${mixHex(col, '#000000', 0.15)}" stroke="${INK}" stroke-width="6"/>`;
+  const op = clamp(o.open || 0);
+  s += `<path d="M66,-112 L118,${n(-100 - 8 * op)} L70,-92 Z" fill="#ff9f2e" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  s += `<path d="M70,-92 L${n(112 - 6 * op)},${n(-88 + 22 * op)} L66,-78 Z" fill="#f0861e" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  const mood = o.mood || 'happy', er = o.baby ? 17 : 14;
+  s += `<circle cx="34" cy="-114" r="${er}" fill="#fff" stroke="${INK}" stroke-width="5"/><circle cx="${mood === 'sniff' ? 30 : 38}" cy="-112" r="${er * 0.55}" fill="${INK}"/><circle cx="41" cy="-117" r="3" fill="#fff"/>`;
+  if (mood === 'worried') s += `<path d="M18,-140 L48,-132" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
+  if (mood === 'sniff') s += `<path d="M${18},-118 A16,16 0 0 1 50,-118 Z" fill="${col}" stroke="${INK}" stroke-width="5"/>`;
+  if (o.baby || mood === 'happy') s += `<ellipse cx="-4" cy="-86" rx="14" ry="8" fill="#ff9aa8" opacity="0.7"/>`;
+  return `<g transform="translate(${n(x)} ${n(y - hop)}) scale(${n(o.flip ? -sc : sc)} ${n(sc)})">${s}</g>`;
+}
+function birdNest(x, y, sc, part) {
+  // 'back' then chicks then 'front'. (x,y) = rim center.
+  if (part === 'front') {
+    let s = `<path d="M-190,0 Q-180,110 0,120 Q180,110 190,0 Q0,40 -190,0 Z" fill="#a0703f" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
+    for (let i = 0; i < 7; i++) s += `<path d="M${-170 + i * 50},${20 + (i % 2) * 20} q30,${30 + (i % 3) * 10} 70,10" fill="none" stroke="#6b4423" stroke-width="7" stroke-linecap="round"/>`;
+    return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${s}</g>`;
+  }
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><ellipse cx="0" cy="0" rx="190" ry="44" fill="#6b4423" stroke="${INK}" stroke-width="${OUT}"/></g>`;
+}
+function branch(x, y, len, sc = 1) {
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M0,0 L${len},-30" stroke="${INK}" stroke-width="54" stroke-linecap="round"/><path d="M0,0 L${len},-30" stroke="#8a5a2b" stroke-width="40" stroke-linecap="round"/>` +
+    [0.3, 0.7].map((u) => `<ellipse cx="${n(len * u)}" cy="${n(-30 * u - 50)}" rx="44" ry="20" transform="rotate(-30 ${n(len * u)} ${n(-30 * u - 50)})" fill="#5fae4a" stroke="${INK}" stroke-width="6"/>`).join('') + `</g>`;
+}
+function gumBall(x, y, sc, t = 0, mood = 'happy') {
+  const sq = 1 + 0.05 * Math.sin(t * 6);
+  let s = `<path d="M-62,0 C-66,-44 -30,-58 0,-52 C34,-60 70,-40 62,4 C60,44 20,54 -6,50 C-40,54 -60,36 -62,0 Z" fill="#ff8fc8" stroke="${INK}" stroke-width="${OUT}"/>`;
+  s += `<ellipse cx="-26" cy="-26" rx="16" ry="9" fill="#ffd1ea"/>`;
+  for (const ex of [-18, 20]) s += `<circle cx="${ex}" cy="-6" r="11" fill="#fff" stroke="${INK}" stroke-width="4"/><circle cx="${ex + 2}" cy="-5" r="5" fill="${INK}"/>`;
+  s += mood === 'worried' ? `<path d="M-12,26 Q2,16 16,26" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`
+    : `<path d="M-12,18 Q2,32 16,18" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`;
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc * sq)} ${n(sc / sq)})">${s}</g>`;
+}
+const GUT_PTS = [[0, -640], [0, -400], [40, -330], [130, -300], [120, -230], [20, -200], [-130, -160], [130, -120], [-130, -70], [130, -20], [-130, 30], [0, 80], [0, 230]];
+function gutPt(u) {
+  const P = GUT_PTS, L = [];
+  let tot = 0;
+  for (let i = 1; i < P.length; i++) { const d = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); L.push(d); tot += d; }
+  let r = clamp(u) * tot;
+  for (let i = 0; i < L.length; i++) { if (r <= L[i]) { const a = r / L[i]; return [lerp(P[i][0], P[i + 1][0], a), lerp(P[i][1], P[i + 1][1], a)]; } r -= L[i]; }
+  return P[P.length - 1];
+}
+function gutMap(x, y, sc, t, u = -1) {
+  // body outline with esophagus, stomach and intestines; u in 0..1 places a gum ball along the path (u<0 = none)
+  let s = `<path d="M-230,300 L-230,-380 Q-230,-470 -120,-500 L-70,-520 L-70,-700 Q0,-760 70,-700 L70,-520 L120,-500 Q230,-470 230,-380 L230,300 Z" fill="#dff3ff" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
+  s += `<circle cx="0" cy="-830" r="150" fill="#fff" stroke="${INK}" stroke-width="${OUT}"/><circle cx="-50" cy="-850" r="16" fill="${INK}"/><circle cx="50" cy="-850" r="16" fill="${INK}"/><path d="M-50,-780 Q0,${u > 0.9 ? -740 : -770} 50,-780" fill="none" stroke="${INK}" stroke-width="8" stroke-linecap="round"/>`;
+  const d = 'M' + GUT_PTS.slice(5, 12).map((p) => p.join(',')).join(' L');
+  s += flowPath(d, 34, '#f7a8a8', '#ffd6d6', t, 60);
+  s += flowPath('M0,-650 L0,-390', 26, '#f7a8a8', '#ffd6d6', t, 60);
+  s += `<path d="M-10,-400 C-20,-340 40,-300 110,-320 C160,-330 170,-250 120,-215 C70,-180 0,-200 -20,-240 Z" fill="#f48ba0" stroke="${INK}" stroke-width="${OUT}"/>`;
+  s += `<path d="M10,-360 C40,-320 90,-310 120,-300" fill="none" stroke="#d96a82" stroke-width="6" stroke-linecap="round"/>`;
+  if (u >= 0) { const [gx, gy] = gutPt(u); s += gumBall(gx, gy, 0.7, t); }
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${s}</g>`;
+}
