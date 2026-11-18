@@ -2010,3 +2010,98 @@ function lantern(x, y, sc, t) {
   const g = 0.5 + 0.15 * Math.sin(t * 9);
   return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><circle cx="0" cy="40" r="140" fill="#ffd27a" opacity="${n(g * 0.35)}"/><path d="M-40,-20 L40,-20 L30,100 L-30,100 Z" fill="#ffe28a" stroke="${INK}" stroke-width="7"/><rect x="-48" y="-40" width="96" height="24" fill="#555" stroke="${INK}" stroke-width="6"/><path d="M-20,-40 Q0,-80 20,-40" fill="none" stroke="${INK}" stroke-width="6"/></g>`;
 }
+
+// ---- ostrich short (2026-11-18) ----
+const OST_SK = '#f4a6a0', OST_BK = '#2b2b30', OST_WH = '#fbf7ef';
+function ostrich(x, y, sc, o = {}) {
+  // feet at (x,y), faces right. o: t, dip 0..1 (head down into a hole at +300,0), run 0..1, kick 0..1, mood calm|smug|scared|gasp, flip
+  const t = o.t || 0, dip = clamp(o.dip || 0), run = o.run || 0, kick = clamp(o.kick || 0), mood = o.mood || 'calm';
+  const ph = t * 7 * 2 * Math.PI;
+  const bob = run * 12 * Math.abs(Math.sin(ph)) + 4 * Math.sin(t * 2.2) * (1 - run);
+  const leg = (hx, k, front) => {
+    let sw = run * 70 * Math.sin(ph + k), fy = -run * 30 * Math.max(0, Math.sin(ph + k + 1.5));
+    let kx = hx + 26 + sw * 0.4, ky = -150 - bob * 0.5, fx = hx + sw, fyy = fy;
+    if (front && kick > 0) { kx = lerp(kx, hx + 120, kick); ky = lerp(ky, -230, kick); fx = lerp(fx, hx + 250, kick); fyy = lerp(fyy, -170, kick); }
+    let s = `<path d="M${hx},${n(-270 - bob)} L${n(kx)},${n(ky)}" stroke="${INK}" stroke-width="58" stroke-linecap="round"/><path d="M${hx},${n(-270 - bob)} L${n(kx)},${n(ky)}" stroke="${OST_SK}" stroke-width="44" stroke-linecap="round"/>`;
+    s += `<path d="M${n(kx)},${n(ky)} L${n(fx)},${n(fyy - 10)}" stroke="${INK}" stroke-width="30" stroke-linecap="round"/><path d="M${n(kx)},${n(ky)} L${n(fx)},${n(fyy - 10)}" stroke="${OST_SK}" stroke-width="17" stroke-linecap="round"/>`;
+    const fa = front ? -60 * kick : 0;
+    s += `<g transform="translate(${n(fx)} ${n(fyy - 6)}) rotate(${n(fa)})"><path d="M-14,0 Q10,-18 52,-4 Q60,8 44,10 L-14,10 Z" fill="${OST_SK}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/><path d="M50,-2 L64,4 L50,10" fill="#fff" stroke="${INK}" stroke-width="4"/></g>`;
+    return s;
+  };
+  let s = leg(-40, Math.PI, false);
+  // body
+  let b = '';
+  const fl = [];
+  for (let i = 0; i < 9; i++) { const a = Math.PI + i * Math.PI / 8; fl.push(`${n(150 * Math.cos(a))},${n(-330 + 100 * Math.sin(a) * (i % 2 ? 1.12 : 1))}`); }
+  b += `<path d="M-150,-330 C-150,-430 140,-450 165,-340 C175,-280 120,-240 40,-238 L-20,-240 Q-60,-215 -90,-245 Q-120,-225 -140,-262 Q-175,-262 -160,-300 Z" fill="${OST_BK}" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
+  // tail plume + wing
+  const tw = 6 * Math.sin(t * 4);
+  b += `<path d="M-140,-380 Q-230,${n(-430 + tw)} -235,${n(-360 + tw)} Q-215,-350 -232,-320 Q-200,-300 -150,-312 Z" fill="${OST_WH}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  const wf = run ? 14 * Math.sin(ph * 0.5) : 0;
+  b += `<path d="M-60,-370 Q30,${n(-395 - wf)} 110,-330 Q60,-300 20,-305 Q0,-280 -30,-300 Q-60,-285 -70,-320 Z" fill="#45454c" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  b += `<path d="M60,-312 Q90,-300 110,-330 Q100,-296 78,-290 Z" fill="${OST_WH}" stroke="${INK}" stroke-width="5"/>`;
+  s += `<g transform="translate(0 ${n(-bob)})">${b}</g>`;
+  s += leg(40, 0, true);
+  // neck + head
+  const n0x = 130, n0y = -370 - bob;
+  const hxU = 205, hyU = -690 - bob + 6 * Math.sin(t * 2.5), hxD = 300, hyD = 52;
+  const hx = lerp(hxU, hxD, eio(dip)), hy = lerp(hyU, hyD, eio(dip));
+  const cx = lerp(200, 330, dip), cy = lerp(-470, -420, dip);
+  const neck = `M${n0x},${n(n0y)} Q${n(cx)},${n(cy)} ${n(hx)},${n(hy)}`;
+  s += `<path d="${neck}" fill="none" stroke="${INK}" stroke-width="44" stroke-linecap="round"/><path d="${neck}" fill="none" stroke="${OST_SK}" stroke-width="30" stroke-linecap="round"/>`;
+  s += `<path d="M${n0x - 10},${n(n0y + 6)} Q${n0x + 10},${n(n0y - 30)} ${n0x + 34},${n(n0y - 4)}" fill="${OST_WH}" stroke="${INK}" stroke-width="5"/>`;
+  const ha = 95 * eio(dip);
+  let h = `<ellipse cx="0" cy="0" rx="44" ry="38" fill="${OST_SK}" stroke="${INK}" stroke-width="${OUT}"/>`;
+  h += `<path d="M-20,-34 q6,-22 14,-4 q8,-22 14,0" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`;
+  const open = mood === 'gasp' ? 16 : 0;
+  h += `<path d="M28,-4 Q80,-2 92,10 Q70,18 30,14 Z" fill="#f0b04a" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  h += `<path d="M30,14 Q66,${18 + open} 88,${12 + open * 0.6} Q66,${26 + open} 28,22 Z" fill="#e79a35" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  const er = mood === 'scared' || mood === 'gasp' ? 22 : 19, pr = mood === 'scared' ? 5 : 9;
+  h += `<circle cx="6" cy="-6" r="${er}" fill="#fff" stroke="${INK}" stroke-width="5"/><circle cx="12" cy="-5" r="${pr}" fill="${INK}"/><circle cx="15" cy="-9" r="3" fill="#fff"/>`;
+  h += `<path d="M-6,${-6 - er} l-6,-12 M4,${-6 - er} l0,-13 M14,${-6 - er} l6,-11" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+  if (mood === 'smug') h += `<path d="M${6 - er},-8 A${er},${er} 0 0 1 ${6 + er},-8 Z" fill="${OST_SK}" stroke="${INK}" stroke-width="5"/>`;
+  if (dip < 0.9) s += `<g transform="translate(${n(hx)} ${n(hy)}) rotate(${n(ha)}) scale(${n(1 - clamp((dip - 0.6) / 0.3))})">${h}</g>`;
+  const fx = o.flip ? -1 : 1;
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc * fx)} ${n(sc)})">${shadow(0, 0, 150, 18)}${s}</g>`;
+}
+function ostEgg(x, y, sc, ang = 0) {
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><ellipse cx="0" cy="0" rx="34" ry="42" fill="#fff6dc" stroke="${INK}" stroke-width="6"/><ellipse cx="-10" cy="-14" rx="8" ry="12" fill="#fff"/><circle cx="12" cy="10" r="3" fill="#e9d7a8"/><circle cx="4" cy="20" r="2.5" fill="#e9d7a8"/></g>`;
+}
+function nestHole(x, y, sc, part, t = 0, turn = 0) {
+  // part 'back' (hole + eggs) or 'front' (sand lip). Draw the ostrich between them.
+  if (part === 'front') return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-200,6 Q0,64 200,6 Q216,40 170,58 Q0,92 -170,58 Q-216,40 -200,6 Z" fill="#f2cf8a" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/><ellipse cx="-90" cy="56" rx="22" ry="6" fill="#d9ad62"/><ellipse cx="80" cy="62" rx="26" ry="6" fill="#d9ad62"/></g>`;
+  let s = `<ellipse cx="0" cy="0" rx="200" ry="52" fill="#8a5a2b" stroke="${INK}" stroke-width="${OUT}"/><ellipse cx="0" cy="8" rx="170" ry="36" fill="#6b4220"/>`;
+  [[-110, 4], [-40, 14], [40, 10], [112, 2]].forEach(([ex, ey], i) => { s += ostEgg(ex, ey - 18, 0.85, turn * 25 * Math.sin(t * 3 + i * 1.7)); });
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${s}</g>`;
+}
+function lion(x, y, sc, o = {}) {
+  // feet at (x,y), faces left. o: t, mood calm|angry|scared, fly 0..1 (launched away up-right, spinning)
+  const t = o.t || 0, mood = o.mood || 'angry', fly = o.fly || 0;
+  const LI = '#e8a64a', MA = '#b8622a';
+  let s = '';
+  const lg = (lx) => `<path d="M${lx},-120 L${lx},-10" stroke="${INK}" stroke-width="40" stroke-linecap="round"/><path d="M${lx},-120 L${lx},-10" stroke="${LI}" stroke-width="26" stroke-linecap="round"/>`;
+  s += lg(60) + lg(150);
+  s += `<path d="M190,-170 Q260,-190 ${n(250 + 10 * Math.sin(t * 5))},-260" fill="none" stroke="${INK}" stroke-width="14" stroke-linecap="round"/><circle cx="${n(250 + 10 * Math.sin(t * 5))}" cy="-266" r="16" fill="${MA}" stroke="${INK}" stroke-width="5"/>`;
+  s += `<ellipse cx="100" cy="-150" rx="120" ry="70" fill="${LI}" stroke="${INK}" stroke-width="${OUT}"/>`;
+  s += lg(20) + lg(120);
+  let m = '';
+  for (let i = 0; i < 14; i++) { const a = i * Math.PI * 2 / 14; m += `${i ? 'L' : 'M'}${n(-60 + 108 * Math.cos(a))},${n(-230 + 108 * Math.sin(a))} L${n(-60 + 86 * Math.cos(a + 0.22))},${n(-230 + 86 * Math.sin(a + 0.22))} `; }
+  s += `<path d="${m}Z" fill="${MA}" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
+  s += `<circle cx="-60" cy="-230" r="66" fill="${LI}" stroke="${INK}" stroke-width="${OUT}"/>`;
+  s += `<circle cx="-110" cy="-284" r="18" fill="${LI}" stroke="${INK}" stroke-width="5"/><circle cx="-10" cy="-284" r="18" fill="${LI}" stroke="${INK}" stroke-width="5"/>`;
+  const eyeR = mood === 'scared' ? 18 : 13;
+  for (const ex of [-88, -40]) {
+    s += `<circle cx="${ex}" cy="-244" r="${eyeR}" fill="#fff" stroke="${INK}" stroke-width="5"/><circle cx="${ex - 3}" cy="-243" r="${mood === 'scared' ? 4 : 7}" fill="${INK}"/>`;
+    if (mood === 'angry') s += `<path d="M${ex - 18},${ex < -60 ? -268 : -262} L${ex + 16},${ex < -60 ? -260 : -268}" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`;
+  }
+  s += `<ellipse cx="-66" cy="-208" rx="14" ry="10" fill="${INK}"/>`;
+  s += mood === 'scared' ? `<ellipse cx="-66" cy="-180" rx="16" ry="14" fill="#7a1f1f" stroke="${INK}" stroke-width="5"/>`
+    : `<path d="M-96,-186 Q-80,-172 -66,-190 Q-52,-172 -36,-186" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><path d="M-88,-182 l6,14 l6,-12 M-50,-182 l-6,14 l-6,-12" fill="#fff" stroke="${INK}" stroke-width="3"/>`;
+  const fx = x + fly * 900, fy = y - fly * 1300 + fly * fly * 300, rot = fly * 540;
+  return `<g transform="translate(${n(fx)} ${n(fy)}) rotate(${n(rot)} 0 -150) scale(${n(sc)})">${fly ? '' : shadow(60, 0, 150, 16)}${s}</g>`;
+}
+function speedLines(x, y, sc, t) {
+  let s = '';
+  for (let i = 0; i < 6; i++) { const yy = -340 + i * 60, off = ((t * 900 + i * 137) % 300); s += `<line x1="${n(-260 - off)}" y1="${yy}" x2="${n(-120 - off)}" y2="${yy}" stroke="${INK}" stroke-width="8" stroke-linecap="round" opacity="0.5"/>`; }
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${s}</g>`;
+}
