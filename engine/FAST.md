@@ -4,7 +4,10 @@
    `git clone --depth 1 https://github.com/ignacio1234ojeda-a11y/animaciones-videos ~/work && cd ~/work/engine && bash setup.sh` (prints OK).
 0b. FORMAT (user rule since 2026-11-19, modelled on the channel Weird Little Facts): a weird TRUE STORY from the past
    (bizarre cures, odd inventions, strange historical events) told as a mini story: hook -> who/where/when -> what went weird
-   -> it gets worse -> how it ended -> joke + loop. Host character: "Captain Curious" (the guy + captain cap + spyglass), in every video.
+   -> it gets worse -> how it ended -> joke + loop. Host character: "Captain Curious" in every video = guy(x,y,sc, body="#1f3a68", legs="#fbfbf7", ...)
+   + art("captainCoat(x,y,sc) + captainCap(x,y,sc)") with the SAME x,y,sc; spyglass pose: guy(..., armR=... ) is not
+   exposed, so use art("spyglass(x+8*sc, y-306*sc, 0.55*sc, -10)") near the eye when he looks at something.
+   Branding (avatar + banner) lives in branding/.
    Max 1-2 videos per day, more polish per video.
 1. Topic: not in the "Topics already used" list of project doc cartoon-engine/publishing.md. 1 web search to verify facts.
 2. Script: LENGTH 40-70 s (user rule since 2026-11-19) = ~120-190 words (Puck speaks ~2.8 words/s), aim ~150 words / ~55 s,
