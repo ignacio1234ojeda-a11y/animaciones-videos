@@ -27,4 +27,10 @@
    -> vidiq_social_post_draft_create (YouTube + TikTok settings in publishing.md, publishAt for spacing) -> vidiq_social_post_publish.
    Then add the links/topic to publishing.md (project doc). SendUserFile the 1080p only if the user is around.
 BATCH ("make N, one every X hours"): repeat 3-6 per video in the same clone; schedule video i at start + i*X hours.
+   Token savers (2026-11-19): pick myths whose pieces already exist in lib.js (grep first); do all spec edits with one
+   python/sed call; only re-check the sheet if you changed layout a lot; do not check post status (vidIQ is reliable).
+   Pieces added 2026-11-19: strike(x0,y0,x1,y1,t,times(t0,n,gap)) lightning bolt+flash; rangerHat(x,y,sc) for the guy;
+   dog(x,y,sc,{t,mood:'happy'|'sniff'|'confused',flip,tail}) feet-anchored faces right; toyBall(x,y,r,col);
+   dogVision(svg,id) / greyVision(svg,id) colour filters (use a different id per item!); grassField(x,y,w,h);
+   skinSlice(y,h,xs) skin cross-section; hairStrand(x,baseY,len,w,blunt); razor(x,y,sc,ang). sfx: any sfx.py call, e.g. sfx="zap(0.5)".
 Old manual mode: FAST-old.md.
