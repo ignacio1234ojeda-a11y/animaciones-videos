@@ -2263,3 +2263,22 @@ function grassField(x, y, w, h) {
   for (let i = 0; i < 14; i++) { const gx = x - w / 2 + 30 + (i * 97) % (w - 60), gy = y - h / 2 + 40 + (i * 61) % (h - 80); s += `<path d="M${gx},${gy} l-8,-22 M${gx},${gy} l0,-26 M${gx},${gy} l8,-22" stroke="#2e7d32" stroke-width="5" stroke-linecap="round"/>`; }
   return s;
 }
+// skinSlice(y, h) skin cross-section band across the screen (top edge at y) with follicles at xs[]
+function skinSlice(y, h, xs = []) {
+  let s = `<rect x="-20" y="${n(y)}" width="1120" height="${n(h)}" fill="#f2c7a5" stroke="${INK}" stroke-width="9"/><rect x="-20" y="${n(y + h * 0.45)}" width="1120" height="${n(h * 0.55)}" fill="#e9a98a"/>`;
+  for (const x of xs) s += `<path d="M${n(x - 22)},${n(y)} L${n(x - 26)},${n(y + h * 0.6)} Q${n(x)},${n(y + h * 0.8)} ${n(x + 26)},${n(y + h * 0.6)} L${n(x + 22)},${n(y)}" fill="#d98d74" stroke="${INK}" stroke-width="6"/><circle cx="${n(x)}" cy="${n(y + h * 0.62)}" r="20" fill="#c06a55" stroke="${INK}" stroke-width="6"/>`;
+  return s;
+}
+// hairStrand(x, baseY, len, w, blunt, col) one hair growing up from baseY; blunt=true -> flat cut tip, else tapered point
+function hairStrand(x, baseY, len, w = 26, blunt = false, col = '#3a2a1e') {
+  if (len <= 1) return '';
+  const top = baseY - len, hw = w / 2;
+  const d = blunt
+    ? `M${n(x - hw)},${n(baseY)} L${n(x - hw)},${n(top)} L${n(x + hw)},${n(top)} L${n(x + hw)},${n(baseY)} Z`
+    : `M${n(x - hw)},${n(baseY)} Q${n(x - hw)},${n(top + len * 0.35)} ${n(x)},${n(top)} Q${n(x + hw)},${n(top + len * 0.35)} ${n(x + hw)},${n(baseY)} Z`;
+  return `<path d="${d}" fill="${col}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+}
+// razor(x, y, sc, ang) safety razor, head centered at (x,y)
+function razor(x, y, sc, ang = 0) {
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><rect x="-22" y="20" width="44" height="300" rx="20" fill="#4fa3e0" stroke="${INK}" stroke-width="9"/><rect x="-130" y="-40" width="260" height="70" rx="18" fill="#d6dcea" stroke="${INK}" stroke-width="9"/><rect x="-118" y="18" width="236" height="14" fill="#9aa4b8" stroke="${INK}" stroke-width="5"/><path d="M-100,-10 L100,-10" stroke="#fff" stroke-width="6" opacity="0.7"/></g>`;
+}
