@@ -3,7 +3,9 @@
 0. Repo: add_repo(owner ignacio1234ojeda-a11y, repo animaciones-videos, access push), then
    `git clone --depth 1 https://github.com/ignacio1234ojeda-a11y/animaciones-videos ~/work && cd ~/work/engine && bash setup.sh` (prints OK).
 1. Topic: not in the "Topics already used" list of project doc cartoon-engine/publishing.md. 1 web search to verify facts.
-2. Script: 50-70 words, English, myth-vs-reality twist. Claude approves it (user said: don't ask).
+2. Script: LENGTH 40-70 s (user rule since 2026-11-19) = ~120-190 words (Puck speaks ~2.8 words/s), aim ~150 words / ~55 s,
+   12-18 lines, ~12-16 shots. English, myth-vs-reality twist. Structure: hook, "Nope!", 3-4 proof beats (each with its own
+   visual test/number), a surprising bonus fact, joke, loop line. Claude approves it (user said: don't ask).
    RETENTION RULES (views come from people not swiping in the first second and rewatching):
    - Line 1 = the question/claim, max ~8 words, curiosity gap ("Why...", "Can...", "You've been lied to about...").
    - Last line must LOOP: it should lead naturally back into line 1 (e.g. ends "...so next time someone asks" -> "Can a day...").
