@@ -2221,3 +2221,45 @@ function rangerHat(x, y, sc) {
   const hx = x, hy = y - sc * 318;
   return `<g transform="translate(${n(hx)} ${n(hy)}) scale(${n(sc * 0.62)})"><ellipse cx="0" cy="40" rx="190" ry="34" fill="#a8743a" stroke="${INK}" stroke-width="9"/><path d="M-95,40 L-80,-60 Q0,-95 80,-60 L95,40 Z" fill="#c08a48" stroke="${INK}" stroke-width="9" stroke-linejoin="round"/><path d="M-30,-70 L0,-40 L30,-70" fill="none" stroke="${INK}" stroke-width="7"/><rect x="-92" y="10" width="184" height="22" fill="#5a3a1a"/></g>`;
 }
+// dog(x,y,sc,{t,mood:'happy'|'sniff'|'confused',flip,col,tail}) feet-anchored, faces right; tongue out when happy.
+function dog(x, y, sc, o = {}) {
+  const t = o.t || 0, col = o.col || '#d9a066', dk = '#9a6534', mood = o.mood || 'happy';
+  const wag = Math.sin(t * (o.tail || 14)) * 22, bob = Math.abs(Math.sin(t * 4)) * 6;
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n((o.flip ? -1 : 1) * sc)} ${n(sc)})">`;
+  s += `<ellipse cx="0" cy="8" rx="170" ry="22" fill="#000" opacity="0.18"/>`;
+  s += `<path d="M-140,-170 Q-200,${n(-240 - wag)} -215,${n(-280 - wag * 1.4)}" fill="none" stroke="${INK}" stroke-width="34" stroke-linecap="round"/><path d="M-140,-170 Q-200,${n(-240 - wag)} -215,${n(-280 - wag * 1.4)}" fill="none" stroke="${col}" stroke-width="20" stroke-linecap="round"/>`;
+  for (const lx of [-110, -60, 60, 110]) s += `<rect x="${lx - 18}" y="-110" width="36" height="110" rx="16" fill="${lx < 0 ? dk : col}" stroke="${INK}" stroke-width="8"/>`;
+  s += `<ellipse cx="0" cy="${n(-150 - bob * 0.3)}" rx="165" ry="85" fill="${col}" stroke="${INK}" stroke-width="9"/>`;
+  s += `<ellipse cx="-40" cy="${n(-170 - bob * 0.3)}" rx="55" ry="35" fill="${dk}" opacity="0.6"/>`;
+  const hy = -270 - bob, ear = mood === 'confused' ? 25 : 0;
+  s += `<g transform="translate(150 ${n(hy)}) rotate(${mood === 'confused' ? -14 : mood === 'sniff' ? 18 : 0})">`;
+  s += `<path d="M-60,-40 Q-120,${-10 + ear} -95,90 Q-60,60 -35,0 Z" fill="${dk}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += `<circle cx="0" cy="0" r="85" fill="${col}" stroke="${INK}" stroke-width="9"/>`;
+  s += `<ellipse cx="85" cy="30" rx="62" ry="44" fill="#f0c896" stroke="${INK}" stroke-width="8"/><ellipse cx="138" cy="14" rx="20" ry="15" fill="${INK}"/>`;
+  if (mood === 'happy') s += `<path d="M70,62 Q80,120 105,112 Q120,100 108,64 Z" fill="#ff7a9a" stroke="${INK}" stroke-width="6"/>`;
+  s += `<path d="M60,60 Q90,${mood === 'happy' ? 80 : 66} 120,56" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`;
+  const blink = (t % 3.1) < 0.12 ? 0.15 : 1;
+  s += `<ellipse cx="30" cy="-20" rx="15" ry="${n(19 * blink)}" fill="${INK}"/><circle cx="35" cy="-27" r="5" fill="#fff"/>`;
+  if (mood === 'confused') s += `<path d="M10,-55 L50,-45" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<path d="M-25,-75 Q-10,-130 25,-90" fill="${dk}" stroke="${INK}" stroke-width="8"/>`;
+  s += `</g></g>`;
+  return s;
+}
+// toyBall(x,y,r,col) shiny toy ball
+function toyBall(x, y, r, col) {
+  return `<g><ellipse cx="${n(x)}" cy="${n(y + r * 0.95)}" rx="${n(r * 0.9)}" ry="${n(r * 0.18)}" fill="#000" opacity="0.18"/><circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="${col}" stroke="${INK}" stroke-width="8"/><path d="M${n(x - r * 0.95)},${n(y)} Q${n(x)},${n(y + r * 0.5)} ${n(x + r * 0.95)},${n(y)}" fill="none" stroke="#fff" stroke-width="7" opacity="0.7"/><circle cx="${n(x - r * 0.35)}" cy="${n(y - r * 0.4)}" r="${n(r * 0.18)}" fill="#fff" opacity="0.8"/></g>`;
+}
+// dogVision(inner, id) wraps SVG so it looks like a dog sees it (red/green collapse to yellow-brown, blue stays).
+function dogVision(inner, id = 'dv') {
+  return `<defs><filter id="${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter></defs><g filter="url(#${id})">${inner}</g>`;
+}
+// greyVision(inner, id) black-and-white version (the myth)
+function greyVision(inner, id = 'gv') {
+  return `<defs><filter id="${id}"><feColorMatrix type="saturate" values="0"/></filter></defs><g filter="url(#${id})">${inner}</g>`;
+}
+// grassField(x, y, w, h) rounded green lawn patch
+function grassField(x, y, w, h) {
+  let s = `<rect x="${n(x - w / 2)}" y="${n(y - h / 2)}" width="${n(w)}" height="${n(h)}" rx="40" fill="#4caf50" stroke="${INK}" stroke-width="9"/>`;
+  for (let i = 0; i < 14; i++) { const gx = x - w / 2 + 30 + (i * 97) % (w - 60), gy = y - h / 2 + 40 + (i * 61) % (h - 80); s += `<path d="M${gx},${gy} l-8,-22 M${gx},${gy} l0,-26 M${gx},${gy} l8,-22" stroke="#2e7d32" stroke-width="5" stroke-linecap="round"/>`; }
+  return s;
+}
