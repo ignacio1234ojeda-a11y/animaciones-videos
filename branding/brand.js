@@ -18,15 +18,15 @@ let b=`<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBo
 b+=`<circle cx="2250" cy="260" r="120" fill="#ffd23f" stroke="${INK}" stroke-width="9"/>`;
 b+=puffy(260,250,1.3)+puffy(1900,170,1.0)+puffy(1180,140,0.8)+puffy(380,560,0.7);
 b+=gull(2100,520,1.2)+gull(2190,470,0.9)+gull(450,400,1);
-b+=ship(2330,1010,0.9);
-b+=`<rect x="500" y="925" width="320" height="34" rx="6" fill="#a8743a" stroke="${INK}" stroke-width="8"/>`+[530,660,790].map(x=>`<rect x="${x-14}" y="955" width="28" height="200" fill="#7a4f22" stroke="${INK}" stroke-width="7"/>`).join('');
-b+=cc(650,928,0.98,LOOK,GLASS);
-b+=waves(1060,'#3d8fd6',30,0)+waves(1130,'#2a6fb8',30,-40)+waves(1220,'#1f3a68',30,-20);
+b+=ship(2150,905,0.75);
+b+=`<rect x="520" y="858" width="280" height="34" rx="6" fill="#a8743a" stroke="${INK}" stroke-width="8"/>`+[550,660,770].map(x=>`<rect x="${x-14}" y="888" width="28" height="120" fill="#7a4f22" stroke="${INK}" stroke-width="7"/>`).join('');
+b+=cc(655,861,0.74,LOOK,GLASS);
+b+=waves(905,'#3d8fd6',22,0)+waves(990,'#2a6fb8',26,-40)+waves(1100,'#1f3a68',30,-20);
 // title
-b+=`<g transform="rotate(-3 1450 650)"><rect x="900" y="545" width="1120" height="190" rx="40" fill="#fff" stroke="${INK}" stroke-width="12"/>`;
-b+=`<text x="1460" y="678" ${FONT} font-size="104" text-anchor="middle" fill="${INK}">Culture With <tspan fill="#e8413a">Data</tspan></text></g>`;
-b+=`<rect x="1010" y="785" width="900" height="100" rx="24" fill="${COAT}" stroke="${INK}" stroke-width="9"/><text x="1460" y="858" ${FONT} font-size="48" text-anchor="middle" fill="#fff">Weird true stories from the past</text>`;
-b+=star(2010,535,46)+star(960,850,32)+qmark(1990,905,130,'#e8413a');
+b+=`<g transform="rotate(-3 1450 650)"><rect x="900" y="560" width="1120" height="180" rx="40" fill="#fff" stroke="${INK}" stroke-width="12"/>`;
+b+=`<text x="1460" y="688" ${FONT} font-size="104" text-anchor="middle" fill="${INK}">Culture With <tspan fill="#e8413a">Data</tspan></text></g>`;
+b+=`<rect x="1010" y="770" width="900" height="92" rx="24" fill="${COAT}" stroke="${INK}" stroke-width="9"/><text x="1460" y="832" ${FONT} font-size="46" text-anchor="middle" fill="#fff">Weird true stories from the past</text>`;
+b+=star(2000,575,42)+star(955,820,30)+qmark(1980,860,110,'#e8413a');
 b+=`</svg>`;
 fs.writeFileSync('banner.svg',b);
 
