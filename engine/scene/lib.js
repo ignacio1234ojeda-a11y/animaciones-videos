@@ -2197,3 +2197,27 @@ function gutMap(x, y, sc, t, u = -1) {
   if (u >= 0) { const [gx, gy] = gutPt(u); s += gumBall(gx, gy, 0.7, t); }
   return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${s}</g>`;
 }
+
+// ---- 2026-11-19 pieces
+// strike(x0,y0,x1,y1,t,times,{flash,col}) jagged lightning bolt from cloud to target, visible 0.3 s after each time in `times`.
+function strike(x0, y0, x1, y1, t, times, o = {}) {
+  let s = '';
+  for (const t0 of [].concat(times)) {
+    const u = t - t0; if (u < 0 || u > 0.3) continue;
+    const a = 1 - u / 0.3, r = rng(Math.floor(t0 * 97) + 3), seg = 7;
+    let d = `M${n(x0)},${n(y0)}`;
+    for (let i = 1; i < seg; i++) { const f = i / seg; d += ` L${n(x0 + (x1 - x0) * f + (r() - 0.5) * 110)},${n(y0 + (y1 - y0) * f)}`; }
+    d += ` L${n(x1)},${n(y1)}`;
+    if (o.flash !== false) s += `<rect x="-200" y="-200" width="1480" height="2320" fill="#fff" opacity="${n(0.3 * a)}"/>`;
+    s += `<path d="${d}" fill="none" stroke="${o.col || '#fff6a8'}" stroke-width="${n(34 * a + 6)}" stroke-linejoin="round" stroke-linecap="round" opacity="${n(0.55 * a)}"/>`;
+    s += `<path d="${d}" fill="none" stroke="#fff" stroke-width="${n(12 * a + 3)}" stroke-linejoin="round" stroke-linecap="round" opacity="${n(a)}"/>`;
+  }
+  return s;
+}
+// times(t0, n, gap) -> [t0, t0+gap, ...] helper for strike()
+function times(t0, k, gap) { const a = []; for (let i = 0; i < k; i++) a.push(t0 + i * gap); return a; }
+// rangerHat(x, y, sc) taking the guy's (x, y, sc): park-ranger hat
+function rangerHat(x, y, sc) {
+  const hx = x, hy = y - sc * 318;
+  return `<g transform="translate(${n(hx)} ${n(hy)}) scale(${n(sc * 0.62)})"><ellipse cx="0" cy="40" rx="190" ry="34" fill="#a8743a" stroke="${INK}" stroke-width="9"/><path d="M-95,40 L-80,-60 Q0,-95 80,-60 L95,40 Z" fill="#c08a48" stroke="${INK}" stroke-width="9" stroke-linejoin="round"/><path d="M-30,-70 L0,-40 L30,-70" fill="none" stroke="${INK}" stroke-width="7"/><rect x="-92" y="10" width="184" height="22" fill="#5a3a1a"/></g>`;
+}
