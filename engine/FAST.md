@@ -2,6 +2,10 @@
 
 0. Repo: add_repo(owner ignacio1234ojeda-a11y, repo animaciones-videos, access push), then
    `git clone --depth 1 https://github.com/ignacio1234ojeda-a11y/animaciones-videos ~/work && cd ~/work/engine && bash setup.sh` (prints OK).
+0b. FORMAT (user rule since 2026-11-19, modelled on the channel Weird Little Facts): a weird TRUE STORY from the past
+   (bizarre cures, odd inventions, strange historical events) told as a mini story: hook -> who/where/when -> what went weird
+   -> it gets worse -> how it ended -> joke + loop. One recurring host character with a fixed name + signature accessory.
+   Max 1-2 videos per day, more polish per video.
 1. Topic: not in the "Topics already used" list of project doc cartoon-engine/publishing.md. 1 web search to verify facts.
 2. Script: LENGTH 40-70 s (user rule since 2026-11-19) = ~120-190 words (Puck speaks ~2.8 words/s), aim ~150 words / ~55 s,
    12-18 lines, ~12-16 shots. English, myth-vs-reality twist. Structure: hook, "Nope!", 3-4 proof beats (each with its own
