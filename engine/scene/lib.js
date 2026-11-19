@@ -2282,3 +2282,26 @@ function hairStrand(x, baseY, len, w = 26, blunt = false, col = '#3a2a1e') {
 function razor(x, y, sc, ang = 0) {
   return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><rect x="-22" y="20" width="44" height="300" rx="20" fill="#4fa3e0" stroke="${INK}" stroke-width="9"/><rect x="-130" y="-40" width="260" height="70" rx="18" fill="#d6dcea" stroke="${INK}" stroke-width="9"/><rect x="-118" y="18" width="236" height="14" fill="#9aa4b8" stroke="${INK}" stroke-width="5"/><path d="M-100,-10 L100,-10" stroke="#fff" stroke-width="6" opacity="0.7"/></g>`;
 }
+// ---- Captain Curious (channel host, 2026-11-19). Both take the guy's (x, y, sc).
+// captainCap: white captain hat with navy band, black visor and gold anchor badge
+function captainCap(gx, gy, sc, ang = 0) {
+  let s = `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)}) rotate(${n(ang)} 0 -360)">`;
+  s += `<path d="M-4,-356 Q58,-358 104,-342 Q66,-334 -4,-342 Z" fill="${INK}"/>`;
+  s += `<path d="M-74,-376 Q-96,-424 -6,-430 Q92,-434 86,-382 Z" fill="#fbfbf7" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+  s += `<path d="M-72,-382 L82,-382 L78,-354 L-68,-354 Z" fill="#1f3a68" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+  s += `<path d="M-58,-382 L70,-382" stroke="#e8b923" stroke-width="5"/>`;
+  s += `<g transform="translate(10 -368) scale(0.8)"><circle r="16" fill="#e8b923" stroke="${INK}" stroke-width="5"/><path d="M0,-9 L0,9 M-7,-3 L7,-3 M-9,3 Q0,12 9,3" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/></g>`;
+  s += `<path d="M-44,-416 Q-10,-423 26,-420" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity="0.9"/>`;
+  return s + `</g>`;
+}
+// captainCoat(gx, gy, sc) gold buttons + collar for the guy wearing body '#1f3a68' (draw after the guy, before the arms matter little)
+function captainCoat(gx, gy, sc) {
+  let s = `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)})">`;
+  s += `<path d="M-30,-224 L0,-196 L30,-224" fill="none" stroke="#fbfbf7" stroke-width="10" stroke-linejoin="round"/>`;
+  for (const y of [-180, -150, -120]) s += `<circle cx="6" cy="${y}" r="7" fill="#e8b923" stroke="${INK}" stroke-width="4"/>`;
+  return s + `</g>`;
+}
+// spyglass(x, y, sc, ang) brass telescope, eyepiece at (x,y), pointing along ang (deg, 0 = right)
+function spyglass(x, y, sc, ang = -20) {
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><rect x="0" y="-16" width="80" height="32" rx="6" fill="#b8862f" stroke="${INK}" stroke-width="7"/><rect x="74" y="-21" width="80" height="42" rx="6" fill="#d9a441" stroke="${INK}" stroke-width="7"/><rect x="148" y="-27" width="70" height="54" rx="6" fill="#e8b923" stroke="${INK}" stroke-width="7"/><rect x="212" y="-31" width="14" height="62" rx="4" fill="#8a5a1a" stroke="${INK}" stroke-width="6"/><path d="M158,-15 L205,-15" stroke="#fff3c4" stroke-width="6" stroke-linecap="round"/></g>`;
+}
