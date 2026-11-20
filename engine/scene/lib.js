@@ -2366,3 +2366,47 @@ function redShoes(x, y, sc, t = 0) {
   const shoe = (dx, f) => `<g transform="translate(${dx} 0) scale(${f} 1)"><path d="M-70,0 L-70,-50 Q-60,-72 -30,-62 L10,-30 Q60,-22 82,-10 Q94,0 82,6 L-70,6 Z" fill="#d6283a" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-30,-62 Q-10,-30 10,-30" fill="none" stroke="${INK}" stroke-width="5"/><path d="M28,-30 l0,-22 M18,-42 l20,0" stroke="#ffd23f" stroke-width="6" stroke-linecap="round"/><rect x="-74" y="2" width="158" height="12" rx="4" fill="#5a2a1a" stroke="${INK}" stroke-width="5"/></g>`;
   return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)}) rotate(${n(4 * Math.sin(t * 3))})">` + shoe(-95, -1) + shoe(95, 1) + `</g>`;
 }
+// ---- corpse-medicine pieces (2026-11-20) ----
+// mummy(x,y,sc,t,o) feet-anchored bandaged mummy, ~400 tall; o.mood 'worried'|'happy'|'surprised', o.goo (0..1 black goo drips), o.arms (0..1 raised)
+function mummy(x, y, sc, t, o = {}) {
+  if (sc <= 0.01) return '';
+  const B = '#efe3c4', D = '#cdbb94', mood = o.mood || 'worried', ar = o.arms === undefined ? 0.6 : o.arms, sw = Math.sin(t * 3);
+  let s = shadow(x, y + 4, 70 * sc) + `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)}) rotate(${n(2 * sw)})">`;
+  s += `<path d="M-26,-130 L-30,-8 M26,-130 L28,-8" stroke="${INK}" stroke-width="44" stroke-linecap="round"/><path d="M-26,-130 L-30,-8 M26,-130 L28,-8" stroke="${B}" stroke-width="30" stroke-linecap="round"/>`;
+  for (const lx of [-30, 28]) for (let i = 0; i < 4; i++) s += `<line x1="${lx - 14}" y1="${-120 + i * 30}" x2="${lx + 14}" y2="${-110 + i * 30}" stroke="${D}" stroke-width="5"/>`;
+  const ay = -250 - 90 * ar;
+  for (const sd of [-1, 1]) s += `<path d="M${sd * 50},-240 L${sd * 120},${n(ay + 8 * sw * sd)}" stroke="${INK}" stroke-width="40" stroke-linecap="round"/><path d="M${sd * 50},-240 L${sd * 120},${n(ay + 8 * sw * sd)}" stroke="${B}" stroke-width="26" stroke-linecap="round"/>`;
+  s += `<path d="M-62,-270 Q-70,-180 -56,-118 Q0,-100 56,-118 Q70,-180 62,-270 Q0,-292 -62,-270 Z" fill="${B}" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
+  for (let i = 0; i < 6; i++) s += `<path d="M-62,${-250 + i * 24} Q0,${-238 + i * 24 + (i % 2 ? 10 : -6)} 62,${-256 + i * 24}" fill="none" stroke="${D}" stroke-width="6"/>`;
+  s += `<circle cx="0" cy="-350" r="74" fill="${B}" stroke="${INK}" stroke-width="${OUT}"/>`;
+  for (let i = 0; i < 5; i++) if (i !== 2) s += `<path d="M-70,${-400 + i * 26} Q0,${-392 + i * 26 + (i % 2 ? 8 : -6)} 70,${-404 + i * 26}" fill="none" stroke="${D}" stroke-width="6"/>`;
+  s += `<rect x="-58" y="-366" width="116" height="34" rx="14" fill="#2b2320"/>`;
+  const er = mood === 'surprised' ? 13 : 10;
+  s += `<circle cx="-24" cy="-349" r="${er}" fill="#fff"/><circle cx="24" cy="-349" r="${er}" fill="#fff"/><circle cx="-22" cy="-348" r="5" fill="${INK}"/><circle cx="26" cy="-348" r="5" fill="${INK}"/>`;
+  if (mood === 'worried') s += `<path d="M-40,-372 L-12,-364 M40,-372 L12,-364" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`;
+  s += mood === 'happy' ? `<path d="M-20,-306 Q0,-288 20,-306" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>` : mood === 'surprised' ? `<ellipse cx="0" cy="-302" rx="12" ry="15" fill="${INK}"/>` : `<path d="M-18,-298 Q0,-310 18,-298" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
+  const g = o.goo || 0;
+  if (g > 0) for (const [gx, gy] of [[-40, -250], [20, -200], [-10, -150], [45, -390]]) { const dl = 20 + 30 * g * (0.5 + 0.5 * Math.sin(t * 2 + gx)); s += `<path d="M${gx - 10},${gy} Q${gx},${gy + dl} ${gx + 10},${gy} Z" fill="#1c1410"/><circle cx="${gx}" cy="${n(gy + dl)}" r="${n(8 * g)}" fill="#1c1410"/>`; }
+  return s + `</g>`;
+}
+// mumiaJar(x,y,sc,txt,col) apothecary jar (centre at x,y)
+function mumiaJar(x, y, sc, lab = 'MUMIA', col = '#d9773a') {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-70,-90 Q-110,-60 -110,10 Q-110,110 -70,120 L70,120 Q110,110 110,10 Q110,-60 70,-90 Z" fill="${col}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><rect x="-60" y="-120" width="120" height="34" rx="8" fill="#6b4a2a" stroke="${INK}" stroke-width="7"/><path d="M-75,-14 L75,-14 L75,46 L-75,46 Z" fill="#fff6dc" stroke="${INK}" stroke-width="6"/>` + txt(0, 28, lab, 32, INK) + `<path d="M-90,-50 Q-96,0 -86,40" fill="none" stroke="#fff" stroke-width="8" opacity="0.4" stroke-linecap="round"/></g>`;
+}
+// mortar(x,y,sc,t) mortar and pestle grinding (centre of bowl at x,y)
+function mortar(x, y, sc, t) {
+  if (sc <= 0.01) return '';
+  const a = 18 * Math.sin(t * 7);
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><g transform="rotate(${n(a)} 0 -10)"><rect x="-18" y="-190" width="36" height="190" rx="16" fill="#b9a68a" stroke="${INK}" stroke-width="8"/></g><path d="M-130,-30 L130,-30 Q120,90 0,100 Q-120,90 -130,-30 Z" fill="#9a8f84" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><ellipse cx="0" cy="-30" rx="130" ry="26" fill="#6e655c" stroke="${INK}" stroke-width="8"/><ellipse cx="0" cy="-30" rx="100" ry="14" fill="#c9a77a"/><rect x="-60" y="96" width="120" height="24" rx="8" fill="#7d736a" stroke="${INK}" stroke-width="7"/></g>`;
+}
+// skull(x,y,sc) cartoon skull (centre)
+function skull(x, y, sc) {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-70,10 Q-80,-80 0,-86 Q80,-80 70,10 Q66,40 40,46 L40,76 L-40,76 L-40,46 Q-66,40 -70,10 Z" fill="#f4efe2" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><ellipse cx="-30" cy="-6" rx="20" ry="24" fill="${INK}"/><ellipse cx="30" cy="-6" rx="20" ry="24" fill="${INK}"/><path d="M0,22 L-10,40 L10,40 Z" fill="${INK}"/><path d="M-20,60 L-20,76 M0,60 L0,76 M20,60 L20,76" stroke="${INK}" stroke-width="5"/></g>`;
+}
+// crown(x,y,sc) gold crown, (x,y) = bottom centre; on a guy use crown(gx, gy - 360*sc, sc)
+function crown(x, y, sc) {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-62,0 L-70,-70 L-36,-38 L0,-84 L36,-38 L70,-70 L62,0 Z" fill="#f2c94c" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><circle cx="0" cy="-22" r="10" fill="#e8413a" stroke="${INK}" stroke-width="4"/><circle cx="-36" cy="-16" r="7" fill="#4fa3e0" stroke="${INK}" stroke-width="4"/><circle cx="36" cy="-16" r="7" fill="#4fa3e0" stroke="${INK}" stroke-width="4"/></g>`;
+}
