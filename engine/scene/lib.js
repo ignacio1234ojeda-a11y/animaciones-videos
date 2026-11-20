@@ -2305,3 +2305,64 @@ function captainCoat(gx, gy, sc) {
 function spyglass(x, y, sc, ang = -20) {
   return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><rect x="0" y="-16" width="80" height="32" rx="6" fill="#b8862f" stroke="${INK}" stroke-width="7"/><rect x="74" y="-21" width="80" height="42" rx="6" fill="#d9a441" stroke="${INK}" stroke-width="7"/><rect x="148" y="-27" width="70" height="54" rx="6" fill="#e8b923" stroke="${INK}" stroke-width="7"/><rect x="212" y="-31" width="14" height="62" rx="4" fill="#8a5a1a" stroke="${INK}" stroke-width="6"/><path d="M158,-15 L205,-15" stroke="#fff3c4" stroke-width="6" stroke-linecap="round"/></g>`;
 }
+// ---- dancing plague pieces (2026-11-20) ----
+// dancer(x,y,sc,t,col,ph,expr,o2) feet-anchored guy dancing (arms swing, bob, sway); ph = phase offset
+function dancer(x, y, sc, t, col = '#e8413a', ph = 0, expr = 'laugh', o2 = {}) {
+  if (sc <= 0.01) return '';
+  const a = Math.sin(t * 8 + ph), b = -Math.abs(Math.sin(t * 8 + ph)) * 34;
+  const o = Object.assign({ expr, t, body: col, legs: '#5a4636', armL: [-110, -290 + 95 * a], armR: [110, -290 - 95 * a], lean: 12 * Math.sin(t * 4 + ph) }, o2);
+  return shadow(x, y + 4, 46 * sc) + `<g transform="translate(${n(x)} ${n(y + b * sc)}) scale(${n(sc)})">${guy(o)}</g>`;
+}
+// danceCrowd(t,y,cnt,sc,seed,k) many dancers between y and y+260 (back rows smaller)
+function danceCrowd(t, y, cnt, sc, seed = 5, k = 1) {
+  const r = rng(seed), cols = ['#e8413a', '#4fa3e0', '#7ee07a', '#ffd23f', '#b98cf0', '#ff8a3d', '#f7b2c8'];
+  const it = [];
+  for (let i = 0; i < cnt; i++) it.push({ x: 90 + r() * 900, d: r(), c: cols[Math.floor(r() * cols.length)], p: r() * 6, e: r() });
+  it.sort((a, b) => a.d - b.d);
+  return it.map(o => dancer(o.x, y + o.d * 260, sc * (0.6 + 0.5 * o.d) * k, t, o.c, o.p, o.e > 0.7 ? 'surprised' : 'laugh')).join('');
+}
+// fallenDancer(x,y,sc,t,col) exhausted dancer lying on the ground, head to the left
+function fallenDancer(x, y, sc, t, col = '#4fa3e0') {
+  if (sc <= 0.01) return '';
+  return shadow(x - 150 * sc, y + 4, 200 * sc) + `<g transform="translate(${n(x)} ${n(y - 70 * sc)}) scale(${n(sc)}) rotate(-90)">${guy({ expr: 'cry', t, body: col, legs: '#5a4636', armL: [-120, -170], armR: [120, -200] })}</g>` + drop(x - 330 * sc, y - 170 * sc, 14 * sc) + drop(x - 250 * sc, y - 190 * sc, 11 * sc);
+}
+// musicNotes(x,y,sc,t,col) notes floating up from (x,y)
+function musicNotes(x, y, sc, t, col = '#ffd23f') {
+  let s = '';
+  for (let i = 0; i < 4; i++) {
+    const ph = (t * 0.6 + i / 4) % 1, op = Math.sin(ph * Math.PI);
+    const nx = x + (i % 2 ? 1 : -1) * (40 + 90 * ph) * sc + 20 * Math.sin(t * 3 + i) * sc, ny = y - 280 * ph * sc;
+    s += `<g transform="translate(${n(nx)} ${n(ny)}) scale(${n(sc * (0.7 + 0.3 * op))})" opacity="${n(op)}"><ellipse cx="0" cy="0" rx="22" ry="16" fill="${col}" stroke="${INK}" stroke-width="6" transform="rotate(-20)"/><path d="M18,-4 L18,-80 Q40,-70 46,-50" fill="none" stroke="${INK}" stroke-width="8" stroke-linecap="round"/></g>`;
+  }
+  return s;
+}
+// drum(x,y,sc,t) drum with sticks hitting
+function drum(x, y, sc, t) {
+  if (sc <= 0.01) return '';
+  const h = Math.abs(Math.sin(t * 8));
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-40,${n(-80 - 40 * h)} L-120,${n(-150 - 40 * h)} M40,${n(-80 - 40 * (1 - h))} L120,${n(-150 - 40 * (1 - h))}" stroke="#8a5a1a" stroke-width="14" stroke-linecap="round"/><rect x="-90" y="-60" width="180" height="120" fill="#c0283a" stroke="${INK}" stroke-width="8"/><path d="M-90,-50 L-45,50 L0,-50 L45,50 L90,-50" fill="none" stroke="#ffd23f" stroke-width="7"/><ellipse cx="0" cy="60" rx="90" ry="26" fill="#c0283a" stroke="${INK}" stroke-width="8"/><rect x="-86" y="-56" width="172" height="112" fill="#c0283a"/><path d="M-90,-50 L-45,50 L0,-50 L45,50 L90,-50" fill="none" stroke="#ffd23f" stroke-width="7"/><line x1="-90" y1="-60" x2="-90" y2="60" stroke="${INK}" stroke-width="8"/><line x1="90" y1="-60" x2="90" y2="60" stroke="${INK}" stroke-width="8"/><ellipse cx="0" cy="-60" rx="90" ry="26" fill="#f4e6c8" stroke="${INK}" stroke-width="8"/></g>`;
+}
+// trumpet(x,y,sc,ang) brass horn, mouthpiece at (x,y)
+function trumpet(x, y, sc, ang = -20) {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><rect x="0" y="-10" width="170" height="20" rx="6" fill="#e8b923" stroke="${INK}" stroke-width="6"/><path d="M160,-14 L240,-55 L240,55 L160,14 Z" fill="#f2c94c" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><rect x="60" y="-36" width="16" height="26" fill="#d9a441" stroke="${INK}" stroke-width="5"/><rect x="90" y="-36" width="16" height="26" fill="#d9a441" stroke="${INK}" stroke-width="5"/></g>`;
+}
+// wagon(x,y,sc,t,spin) wooden cart, y = ground, wheels roll with t
+function wagon(x, y, sc, t, spin = 1) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  s += `<path d="M-240,-110 L-380,-140" stroke="#6b4a2a" stroke-width="16" stroke-linecap="round"/>`;
+  s += `<rect x="-240" y="-200" width="480" height="110" fill="#a8743f" stroke="${INK}" stroke-width="8"/>`;
+  for (const yy of [-165, -130]) s += `<line x1="-236" y1="${yy}" x2="236" y2="${yy}" stroke="#7d5229" stroke-width="5"/>`;
+  for (const wx of [-150, 150]) {
+    s += `<g transform="translate(${wx} -60) rotate(${n(t * 220 * spin)})"><circle r="60" fill="#d9b98a" stroke="${INK}" stroke-width="8"/>`;
+    for (let i = 0; i < 6; i++) s += `<line x1="0" y1="0" x2="${n(60 * Math.cos(i * Math.PI / 3))}" y2="${n(60 * Math.sin(i * Math.PI / 3))}" stroke="${INK}" stroke-width="6"/>`;
+    s += `<circle r="12" fill="${INK}"/></g>`;
+  }
+  return s + `</g>`;
+}
+// redShoes(x,y,sc,t) pair of red shoes with little crosses
+function redShoes(x, y, sc, t = 0) {
+  if (sc <= 0.01) return '';
+  const shoe = (dx, f) => `<g transform="translate(${dx} 0) scale(${f} 1)"><path d="M-70,0 L-70,-50 Q-60,-72 -30,-62 L10,-30 Q60,-22 82,-10 Q94,0 82,6 L-70,6 Z" fill="#d6283a" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-30,-62 Q-10,-30 10,-30" fill="none" stroke="${INK}" stroke-width="5"/><path d="M28,-30 l0,-22 M18,-42 l20,0" stroke="#ffd23f" stroke-width="6" stroke-linecap="round"/><rect x="-74" y="2" width="158" height="12" rx="4" fill="#5a2a1a" stroke="${INK}" stroke-width="5"/></g>`;
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)}) rotate(${n(4 * Math.sin(t * 3))})">` + shoe(-95, -1) + shoe(95, 1) + `</g>`;
+}
