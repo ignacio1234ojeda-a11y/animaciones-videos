@@ -2410,3 +2410,45 @@ function crown(x, y, sc) {
   if (sc <= 0.01) return '';
   return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-62,0 L-70,-70 L-36,-38 L0,-84 L36,-38 L70,-70 L62,0 Z" fill="#f2c94c" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><circle cx="0" cy="-22" r="10" fill="#e8413a" stroke="${INK}" stroke-width="4"/><circle cx="-36" cy="-16" r="7" fill="#4fa3e0" stroke="${INK}" stroke-width="4"/><circle cx="36" cy="-16" r="7" fill="#4fa3e0" stroke="${INK}" stroke-width="4"/></g>`;
 }
+// ---- ketchup-medicine pieces (2026-11-21) ----
+// tomato(x,y,sc,t,mood) round tomato with face; mood 'happy'|'worried'|'none'
+function tomato(x, y, sc, t = 0, mood = 'happy') {
+  if (sc <= 0.01) return '';
+  const b = 4 * Math.sin(t * 4);
+  let s = `<g transform="translate(${n(x)} ${n(y + b)}) scale(${n(sc)})"><path d="M-100,0 Q-104,-86 0,-90 Q104,-86 100,0 Q96,84 0,88 Q-96,84 -100,0 Z" fill="#e8413a" stroke="${INK}" stroke-width="8"/><path d="M-62,-48 Q-50,-64 -30,-66" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity="0.6"/>`;
+  s += `<path d="M0,-86 L-34,-112 L-12,-92 L-40,-80 L-6,-82 L0,-110 L8,-82 L42,-82 L14,-92 L34,-112 Z" fill="#5aa84a" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/><path d="M0,-96 L4,-130" stroke="#3d7a32" stroke-width="10" stroke-linecap="round"/>`;
+  if (mood !== 'none') {
+    s += `<circle cx="-32" cy="-10" r="11" fill="${INK}"/><circle cx="32" cy="-10" r="11" fill="${INK}"/><circle cx="-28" cy="-14" r="4" fill="#fff"/><circle cx="36" cy="-14" r="4" fill="#fff"/>`;
+    s += mood === 'happy' ? `<path d="M-30,24 Q0,52 30,24" fill="#7a1a1a" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>` : `<path d="M-24,38 Q0,22 24,38" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
+  }
+  return s + `</g>`;
+}
+// ketchupBottle(x,y,sc,t,lab,squirt) glass sauce bottle, (x,y)=bottom centre; squirt 0..1 draws a red stream from the top
+function ketchupBottle(x, y, sc, t = 0, lab = 'KETCHUP', squirt = 0) {
+  if (sc <= 0.01) return '';
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  if (squirt > 0) s += `<path d="M0,-380 Q${n(30 * Math.sin(t * 9))},${n(-380 - 120 * squirt)} 0,${n(-380 - 220 * squirt)}" fill="none" stroke="#c0283a" stroke-width="22" stroke-linecap="round"/>`;
+  s += `<path d="M-70,0 L-70,-200 Q-70,-250 -30,-280 L-30,-350 L30,-350 L30,-280 Q70,-250 70,-200 L70,0 Z" fill="#c0283a" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += `<rect x="-36" y="-385" width="72" height="40" rx="8" fill="#f4efe2" stroke="${INK}" stroke-width="7"/><rect x="-70" y="-170" width="140" height="90" fill="#fff6dc" stroke="${INK}" stroke-width="6"/>` + txt(0, -112, lab, 24, INK) + tomato(0, -140, 0.16, 0, 'none').replace(/translate\([^)]*\)/, 'translate(0 -150)');
+  s += `<path d="M-52,-220 L-52,-40" stroke="#fff" stroke-width="10" opacity="0.35" stroke-linecap="round"/></g>`;
+  return s;
+}
+// capsule(x,y,sc,ang,col) two-tone pill capsule
+function capsule(x, y, sc, ang = -30, col = '#e8413a') {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><path d="M0,-34 L-60,-34 A34,34 0 0 0 -60,34 L0,34 Z" fill="${col}" stroke="${INK}" stroke-width="7"/><path d="M0,-34 L60,-34 A34,34 0 0 1 60,34 L0,34 Z" fill="#f4efe2" stroke="${INK}" stroke-width="7"/><path d="M-70,-18 L-30,-18" stroke="#fff" stroke-width="8" opacity="0.5" stroke-linecap="round"/></g>`;
+}
+// newspaper(x,y,sc,ang,head,sub) newspaper page with a headline
+function newspaper(x, y, sc, ang = -4, head = 'NEWS', sub = '') {
+  if (sc <= 0.01) return '';
+  let s = `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><rect x="-200" y="-260" width="400" height="520" fill="#f4efe2" stroke="${INK}" stroke-width="8"/><rect x="-176" y="-236" width="352" height="40" fill="#2b2320"/>` + txt(0, -205, 'DAILY GAZETTE', 28, '#f4efe2') + txt(0, -130, head, head.length > 9 ? 40 : 56, INK);
+  if (sub) s += txt(0, -80, sub, 28, '#c0283a');
+  for (let i = 0; i < 7; i++) s += `<rect x="-176" y="${-40 + i * 38}" width="${i % 3 === 2 ? 220 : 352}" height="14" rx="6" fill="#c9bfae"/>`;
+  return s + `</g>`;
+}
+// horseHead(x,y,sc,t) laughing horse head (centre)
+function horseHead(x, y, sc, t = 0) {
+  if (sc <= 0.01) return '';
+  const j = 6 * Math.abs(Math.sin(t * 10));
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)}) rotate(${n(-8 + 3 * Math.sin(t * 5))})"><path d="M-40,-120 L-56,-180 L-14,-140 Z M30,-124 L40,-184 L60,-130 Z" fill="#a8743f" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><path d="M-70,-110 Q-40,-160 40,-130 Q90,-100 150,20 Q170,70 120,90 Q80,100 40,60 Q-60,20 -70,-110 Z" fill="#a8743f" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-60,-130 Q-90,-60 -80,20" fill="none" stroke="#5a3a1a" stroke-width="22" stroke-linecap="round"/><circle cx="10" cy="-80" r="12" fill="${INK}"/><path d="M80,${n(60 + j)} Q120,${n(80 + j)} 150,50" fill="#fff" stroke="${INK}" stroke-width="6"/><circle cx="130" cy="20" r="6" fill="${INK}"/></g>`;
+}
