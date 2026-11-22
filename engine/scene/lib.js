@@ -2452,3 +2452,43 @@ function horseHead(x, y, sc, t = 0) {
   const j = 6 * Math.abs(Math.sin(t * 10));
   return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)}) rotate(${n(-8 + 3 * Math.sin(t * 5))})"><path d="M-40,-120 L-56,-180 L-14,-140 Z M30,-124 L40,-184 L60,-130 Z" fill="#a8743f" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><path d="M-70,-110 Q-40,-160 40,-130 Q90,-100 150,20 Q170,70 120,90 Q80,100 40,60 Q-60,20 -70,-110 Z" fill="#a8743f" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-60,-130 Q-90,-60 -80,20" fill="none" stroke="#5a3a1a" stroke-width="22" stroke-linecap="round"/><circle cx="10" cy="-80" r="12" fill="${INK}"/><path d="M80,${n(60 + j)} Q120,${n(80 + j)} 150,50" fill="#fff" stroke="${INK}" stroke-width="6"/><circle cx="130" cy="20" r="6" fill="${INK}"/></g>`;
 }
+// ---- flat-earth pieces (2026-11-22) ----
+// globe(x,y,r,t,spin) round Earth with drifting continents
+function globe(x, y, r, t = 0, spin = 1) {
+  if (r <= 1) return '';
+  const c = uid('gl'), off = ((t * 40 * spin) % 400);
+  let s = `<g transform="translate(${n(x)} ${n(y)})"><defs><clipPath id="${c}"><circle r="${n(r)}"/></clipPath></defs><circle r="${n(r)}" fill="#4fa3e0"/><g clip-path="url(#${c})"><g transform="scale(${n(r / 100)})">`;
+  for (const k of [-400, 0]) {
+    const dx = k + off;
+    s += `<path d="M${n(dx - 80)},-60 Q${n(dx - 40)},-90 ${n(dx - 10)},-50 Q${n(dx + 10)},-10 ${n(dx - 30)},20 Q${n(dx - 60)},40 ${n(dx - 70)},0 Z" fill="#7ec850" stroke="${INK}" stroke-width="4"/>`;
+    s += `<path d="M${n(dx + 40)},-20 Q${n(dx + 90)},-40 ${n(dx + 110)},10 Q${n(dx + 100)},70 ${n(dx + 60)},80 Q${n(dx + 30)},40 ${n(dx + 40)},-20 Z" fill="#7ec850" stroke="${INK}" stroke-width="4"/>`;
+    s += `<path d="M${n(dx + 150)},-70 Q${n(dx + 200)},-80 ${n(dx + 230)},-40 Q${n(dx + 200)},-10 ${n(dx + 160)},-30 Z" fill="#7ec850" stroke="${INK}" stroke-width="4"/>`;
+  }
+  s += `</g><path d="M${n(-r)},${n(-r * 0.2)} A${n(r)},${n(r)} 0 0 0 ${n(r * 0.3)},${n(r)} L${n(r)},${n(r)} L${n(r)},${n(-r)} Z" fill="rgba(0,0,40,0.12)" transform="rotate(30)"/></g>`;
+  s += `<circle r="${n(r)}" fill="none" stroke="${INK}" stroke-width="${n(Math.max(6, r * 0.05))}"/><path d="M${n(-r * 0.6)},${n(-r * 0.45)} Q${n(-r * 0.45)},${n(-r * 0.7)} ${n(-r * 0.15)},${n(-r * 0.75)}" fill="none" stroke="#fff" stroke-width="${n(r * 0.07)}" stroke-linecap="round" opacity="0.5"/></g>`;
+  return s;
+}
+// sailShip(x,y,sc,t,tilt) small caravel, (x,y) = waterline centre
+function sailShip(x, y, sc, t = 0, tilt = 0) {
+  if (sc <= 0.01) return '';
+  const b = 6 * Math.sin(t * 3), r = tilt + 3 * Math.sin(t * 2.4);
+  return `<g transform="translate(${n(x)} ${n(y + b * sc)}) rotate(${n(r)}) scale(${n(sc)})"><line x1="0" y1="0" x2="0" y2="-230" stroke="${INK}" stroke-width="10"/><path d="M8,-215 Q90,-160 8,-90 Z" fill="#f4efe2" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><path d="M-8,-200 Q-80,-150 -8,-95 Z" fill="#f4efe2" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><path d="M0,-230 L40,-240 L0,-250 Z" fill="#e8413a" stroke="${INK}" stroke-width="5"/><path d="M-130,-60 L130,-60 Q110,10 70,20 L-70,20 Q-110,10 -130,-60 Z" fill="#a8743f" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><line x1="-118" y1="-30" x2="118" y2="-30" stroke="#7d5229" stroke-width="5"/></g>`;
+}
+// flatEarth(x,y,sc,t) flat disc world with a waterfall over the edge (centre of disc top)
+function flatEarth(x, y, sc, t = 0) {
+  if (sc <= 0.01) return '';
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  for (let i = 0; i < 9; i++) { const fx = -340 + i * 85, ph = (t * 1.5 + i * 0.37) % 1; s += `<path d="M${fx},40 L${fx},${n(140 + 160 * ph)}" stroke="#8fd0ff" stroke-width="22" stroke-linecap="round" opacity="${n(1 - ph)}"/>`; }
+  s += `<path d="M-400,0 L-400,60 Q0,150 400,60 L400,0 Z" fill="#8a6a4a" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += `<ellipse cx="0" cy="0" rx="400" ry="90" fill="#4fa3e0" stroke="${INK}" stroke-width="8"/>`;
+  s += `<path d="M-180,-30 Q-120,-60 -60,-30 Q-40,0 -110,20 Q-180,20 -180,-30 Z M60,-10 Q120,-50 200,-20 Q220,20 140,30 Q70,30 60,-10 Z" fill="#7ec850" stroke="${INK}" stroke-width="5"/>`;
+  return s + `</g>`;
+}
+// book(x,y,sc,col,drawing) open book; drawing 'globe' draws a little round Earth on the right page
+function book(x, y, sc, col = '#8a3a2a', drawing = 'globe') {
+  if (sc <= 0.01) return '';
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-250,-150 L0,-120 L250,-150 L250,130 L0,160 L-250,130 Z" fill="${col}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-230,-140 Q-110,-150 0,-110 L0,140 Q-110,100 -230,120 Z" fill="#f4efe2" stroke="${INK}" stroke-width="6"/><path d="M230,-140 Q110,-150 0,-110 L0,140 Q110,100 230,120 Z" fill="#f4efe2" stroke="${INK}" stroke-width="6"/>`;
+  for (let i = 0; i < 6; i++) s += `<path d="M-200,${-90 + i * 36} Q-110,${-96 + i * 36} -30,${-74 + i * 36}" fill="none" stroke="#b9ab94" stroke-width="6"/>`;
+  if (drawing === 'globe') s += `<circle cx="115" cy="0" r="70" fill="none" stroke="#5a4a3a" stroke-width="6"/><ellipse cx="115" cy="0" rx="30" ry="70" fill="none" stroke="#5a4a3a" stroke-width="4"/><line x1="45" y1="0" x2="185" y2="0" stroke="#5a4a3a" stroke-width="4"/>`;
+  return s + `</g>`;
+}
