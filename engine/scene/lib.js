@@ -2492,3 +2492,24 @@ function book(x, y, sc, col = '#8a3a2a', drawing = 'globe') {
   if (drawing === 'globe') s += `<circle cx="115" cy="0" r="70" fill="none" stroke="#5a4a3a" stroke-width="6"/><ellipse cx="115" cy="0" rx="30" ry="70" fill="none" stroke="#5a4a3a" stroke-width="4"/><line x1="45" y1="0" x2="185" y2="0" stroke="#5a4a3a" stroke-width="4"/>`;
   return s + `</g>`;
 }
+// ---- gladiator pieces (2026-11-23) ----
+// gladiatorSword(x,y,sc,ang) short sword, (x,y) = hilt
+function gladiatorSword(x, y, sc, ang = -40) {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><path d="M-14,-20 L-14,-190 L0,-230 L14,-190 L14,-20 Z" fill="#dfe6ee" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><line x1="0" y1="-30" x2="0" y2="-190" stroke="#aab4c0" stroke-width="5"/><rect x="-44" y="-26" width="88" height="20" rx="8" fill="#e8b923" stroke="${INK}" stroke-width="6"/><rect x="-10" y="-6" width="20" height="56" rx="6" fill="#6b4a2a" stroke="${INK}" stroke-width="6"/><circle cx="0" cy="56" r="14" fill="#e8b923" stroke="${INK}" stroke-width="5"/></g>`;
+}
+// romanShield(x,y,sc,col) curved rectangular scutum (centre)
+function romanShield(x, y, sc, col = '#c0283a') {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><rect x="-90" y="-140" width="180" height="280" rx="34" fill="${col}" stroke="${INK}" stroke-width="8"/><rect x="-70" y="-120" width="140" height="240" rx="24" fill="none" stroke="#e8b923" stroke-width="7"/><circle r="34" fill="#e8b923" stroke="${INK}" stroke-width="7"/><path d="M0,-120 L0,-34 M0,34 L0,120" stroke="#e8b923" stroke-width="7"/></g>`;
+}
+// perfumeBottle(x,y,sc,lab) small round perfume flask, (x,y)=bottom centre
+function perfumeBottle(x, y, sc, lab = 'SWEAT') {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-22,-150 L-22,-120 Q-90,-110 -90,-50 Q-90,0 0,0 Q90,0 90,-50 Q90,-110 22,-120 L22,-150 Z" fill="#c9e8ff" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-80,-50 Q-80,-6 0,-8 Q80,-6 80,-50 Z" fill="#e8d27a" opacity="0.85"/><rect x="-30" y="-190" width="60" height="44" rx="10" fill="#b98cf0" stroke="${INK}" stroke-width="7"/><rect x="-62" y="-92" width="124" height="42" rx="6" fill="#fff6dc" stroke="${INK}" stroke-width="5"/>` + txt(0, -62, lab, 26, INK) + `</g>`;
+}
+// gladiator(x,y,sc,expr,pose,shieldCol) items for spec: use as art: guy + ironHelmet + shield + sword
+function gladiatorArt(x, y, sc, t, expr = 'determined', shieldCol = '#c0283a') {
+  return guy_at(x, y, sc, { expr, t, body: '#b5651d', legs: '#e9c9a0', armL: [-120, -260], armR: [110, -330] }) + ironHelmet(x, y, sc) + gladiatorSword(x + 120 * sc, y - 330 * sc, sc * 0.9, 20) + romanShield(x - 120 * sc, y - 190 * sc, sc * 0.75, shieldCol);
+}
+function guy_at(x, y, sc, o) { return shadow(x, y + 4, 46 * sc) + `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${guy(o)}</g>`; }
