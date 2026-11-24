@@ -2513,3 +2513,24 @@ function gladiatorArt(x, y, sc, t, expr = 'determined', shieldCol = '#c0283a') {
   return guy_at(x, y, sc, { expr, t, body: '#b5651d', legs: '#e9c9a0', armL: [-120, -260], armR: [110, -330] }) + ironHelmet(x, y, sc) + gladiatorSword(x + 120 * sc, y - 330 * sc, sc * 0.9, 20) + romanShield(x - 120 * sc, y - 190 * sc, sc * 0.75, shieldCol);
 }
 function guy_at(x, y, sc, o) { return shadow(x, y + 4, 46 * sc) + `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${guy(o)}</g>`; }
+// ---- old-age pieces (2026-11-24) ----
+// elderBeard(gx,gy,sc) white beard + eyebrows on a guy at (gx,gy,sc) (draw after the guy)
+function elderBeard(gx, gy, sc) {
+  return `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)})"><path d="M-62,-262 Q-60,-170 0,-150 Q60,-170 62,-262 Q40,-236 0,-240 Q-40,-236 -62,-262 Z" fill="#f4f4f4" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/><path d="M-26,-246 Q0,-262 26,-246" fill="none" stroke="#f4f4f4" stroke-width="14" stroke-linecap="round"/><path d="M-26,-246 Q0,-262 26,-246" fill="none" stroke="${INK}" stroke-width="3" opacity="0.4"/><path d="M-44,-332 L-14,-326 M44,-332 L14,-326" stroke="#f4f4f4" stroke-width="12" stroke-linecap="round"/></g>`;
+}
+// cane(x,y,sc) walking cane, (x,y) = tip on the ground
+function cane(x, y, sc) {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M0,0 L0,-200 Q0,-240 -36,-240 Q-62,-240 -62,-214" fill="none" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M0,0 L0,-200 Q0,-240 -36,-240 Q-62,-240 -62,-214" fill="none" stroke="#8a5a1a" stroke-width="12" stroke-linecap="round"/></g>`;
+}
+// baby(x,y,sc,t) swaddled baby (centre)
+function baby(x, y, sc, t = 0) {
+  if (sc <= 0.01) return '';
+  const w = 3 * Math.sin(t * 4);
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(w)}) scale(${n(sc)})"><path d="M-70,-10 Q-80,90 0,110 Q80,90 70,-10 Q0,-30 -70,-10 Z" fill="#a8d8f0" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><circle cx="0" cy="-40" r="52" fill="#fff" stroke="${INK}" stroke-width="7"/><circle cx="-18" cy="-44" r="6" fill="${INK}"/><circle cx="18" cy="-44" r="6" fill="${INK}"/><ellipse cx="0" cy="-20" rx="8" ry="6" fill="#e8413a"/><path d="M-6,-92 Q4,-104 10,-88" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/></g>`;
+}
+// speechBubble(x,y,sc,txtS,w) rounded speech bubble with text, tail pointing down-left
+function speechBubble(x, y, sc, s1 = '...', w = 360) {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M${-w / 2},-70 Q${-w / 2},-110 ${-w / 2 + 40},-110 L${w / 2 - 40},-110 Q${w / 2},-110 ${w / 2},-70 L${w / 2},10 Q${w / 2},50 ${w / 2 - 40},50 L-40,50 L-90,110 L-80,50 L${-w / 2 + 40},50 Q${-w / 2},50 ${-w / 2},10 Z" fill="#fff" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>` + txt(0, -14, s1, 40, INK) + `</g>`;
+}
