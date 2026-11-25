@@ -1,0 +1,58 @@
+# Hair and nails grow after death? (myth format ~25 s, Captain Curious)
+SCRIPT = [
+    "Do your hair and nails keep growing after you die?",
+    "Nope!",
+    "Growing needs brand new cells, and that stops when your heart does.",
+    "So why do they look longer?",
+    "After death, your skin dries out and shrinks back.",
+    "That uncovers more of each nail, and makes stubble stick out.",
+    "Funeral workers even moisturize fingers to hide it.",
+    "So no, you won't need a haircut in your coffin.",
+]
+def captain(x, y, sc, expr="curious", pose="rest", glass=False, ch=()):
+    it = [guy(x=x, y=y, sc=sc, expr=expr, pose=pose, ch=list(ch), body="#1f3a68", legs="#fbfbf7"),
+          art(f"captainCoat({x},{y},{sc}) + captainCap({x},{y},{sc})")]
+    if glass: it.append(art(f"spyglass({x+8*sc}, {y-306*sc}, {0.55*sc}, -10)"))
+    return it
+NIGHT = "graveBg(t, 1, 1500)"
+SHOTS = [
+    shot(0,
+         art(NIGHT + " + coffin(600, 1050, 1.5, t) + wildHair(600 - 170*1.5 - 40, 1050, 1.5, t, 0.75 + 0.25*Math.sin(t*2), Math.PI)"),
+         *captain(220, 1700, 1.0, "worried", glass=True),
+         label("STILL GROWING?", None, y=230, size=86),
+         label("AFTER DEATH", "die", y=370, col="#b98cf0")),
+    shot("Nope",
+         art(NIGHT + " + coffin(540, 1050, 1.5, t)"),
+         stamp("NOPE", "Nope", y=560)),
+    shot("Growing",
+         label("NEEDS NEW CELLS", "cells", y=230, col="#7ee07a"),
+         art("[0,1,2,3,4,5].map(i => `<circle cx='${300 + (i%3)*240}' cy='${800 + Math.floor(i/3)*240}' r='${n(80*clamp((t - T.cut2 - 0.3 - i*0.15)/0.3))}' fill='#ffd1dc' stroke='#1c1c1e' stroke-width='7'/><circle cx='${300 + (i%3)*240}' cy='${800 + Math.floor(i/3)*240}' r='${n(24*clamp((t - T.cut2 - 0.3 - i*0.15)/0.3))}' fill='#b98cf0'/>`).join('')"),
+         pop("♥", "heart", x=540, y=1250, size=200, col="#e8413a", sfx="pop", hit=None),
+         stamp("STOP", "stops", y=1560),
+         bg="#fff0f4"),
+    shot("why",
+         *captain(540, 1680, 1.9, "confused", pose="think"),
+         label("THEN WHY LONGER?", "longer", y=230),
+         bg="#e6ecff"),
+    shot("After",
+         art("nailFinger(540, 1750, 1.9, eo(prog(t, T.cut4 + 1.0, T.cut4 + 2.6)))"),
+         label("SKIN DRIES OUT", "dries", y=230, col="#ff8a3d"),
+         label("AND SHRINKS", "shrinks", y=360),
+         bg="#fff6d6"),
+    shot("That",
+         art("nailFinger(330, 1750, 1.3, 1)"),
+         label("MORE NAIL SHOWS", "nail", y=230),
+         art("guy_at(800, 1650, 1.3, {expr:'flat', t, body:'#7fb3d9', legs:'#3b2f2a'}) + stubble(800, 1650, 1.3, 1)", at="stubble"),
+         label("STUBBLE POPS OUT", "stubble", y=360, col="#ffd23f"),
+         bg="#fff6d6"),
+    shot("Funeral",
+         art("nailFinger(330, 1750, 1.3, 1 - 0.8*eo(prog(t, T.cut6 + 1.4, T.cut6 + 2.6)))"),
+         art("perfumeBottle(800, 1400, 1.6*k, 'LOTION')", at="moisturize"),
+         label("FUNERAL TRICK", "Funeral", y=230, col="#b98cf0"),
+         label("MOISTURIZER", "moisturize", y=360, col="#7fd6ff"),
+         bg="#f3e6ff"),
+    shot("no",
+         art(NIGHT + " + coffin(700, 1150, 1.1, t)"),
+         *captain(250, 1700, 1.3, "laugh", pose="point"),
+         pop("NO COFFIN HAIRCUTS!", "haircut", y=300, size=70, col="#ffd23f")),
+]

@@ -2565,3 +2565,34 @@ function lightRay(x0, y0, x1, y1, col = '#4f7fe0', p = 1) {
   const x = x0 + (x1 - x0) * p, y = y0 + (y1 - y0) * p, a = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI;
   return `<path d="M${n(x0)},${n(y0)} L${n(x)},${n(y)}" stroke="${col}" stroke-width="16" stroke-linecap="round" stroke-dasharray="30 18"/><g transform="translate(${n(x)} ${n(y)}) rotate(${n(a)})"><path d="M0,0 L-40,-24 L-40,24 Z" fill="${col}" stroke="${INK}" stroke-width="5"/></g>`;
 }
+// ---- hair & nails after death pieces (2026-11-25) ----
+// nailFinger(x,y,sc,shrink) big upright finger with a nail; shrink 0..1 pulls the skin back, showing more nail. (x,y)=finger base
+function nailFinger(x, y, sc, shrink = 0) {
+  if (sc <= 0.01) return '';
+  const top = -520, sk = -330 + 70 * shrink;
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  s += `<path d="M-110,0 L-110,${top + 110} Q-110,${top} 0,${top} Q110,${top} 110,${top + 110} L110,0 Z" fill="#f6d2b8" stroke="${INK}" stroke-width="9" stroke-linejoin="round"/>`;
+  s += `<path d="M-80,${top + 130} Q-80,${top + 20} 0,${top + 20} Q80,${top + 20} 80,${top + 130} L80,${n(sk)} Q0,${n(sk - 30)} -80,${n(sk)} Z" fill="#ffe6ee" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+  s += `<path d="M-80,${top + 130} Q-80,${top + 20} 0,${top + 20} Q80,${top + 20} 80,${top + 130} L80,${top + 150} Q0,${top + 120} -80,${top + 150} Z" fill="#fff" stroke="${INK}" stroke-width="5" opacity="0.9"/>`;
+  s += `<path d="M-96,${n(sk + 6)} Q0,${n(sk - 26)} 96,${n(sk + 6)}" fill="none" stroke="#d9a88a" stroke-width="10" stroke-linecap="round"/>`;
+  for (const yy of [-200, -150]) s += `<path d="M-60,${yy} Q0,${yy + 14} 60,${yy}" fill="none" stroke="#d9a88a" stroke-width="7" stroke-linecap="round"/>`;
+  return s + `</g>`;
+}
+// stubble(gx,gy,sc,amt) stubble dots on a guy's chin at (gx,gy,sc); amt 0..1 makes them bigger/darker
+function stubble(gx, gy, sc, amt = 0.5) {
+  let s = `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)})">`;
+  const r = rng(77);
+  for (let i = 0; i < 46; i++) { const a = Math.PI * (0.15 + 0.7 * r()), d = 50 + 22 * r(); s += `<circle cx="${n(Math.cos(a) * d)}" cy="${n(-300 + Math.sin(a) * d)}" r="${n(2 + 3 * amt)}" fill="#3a2a1e" opacity="${n(0.4 + 0.6 * amt)}"/>`; }
+  return s + `</g>`;
+}
+// wildHair(x,y,sc,t,len,dir) long wavy myth hair growing out from a point (x,y), len 0..1
+function wildHair(x, y, sc, t, len = 1, dir = -Math.PI / 2) {
+  if (len <= 0.01) return '';
+  let s = '';
+  for (let i = 0; i < 9; i++) {
+    const a = dir + (i - 4) * 0.32, L = 260 * len * sc, w = 26 * sc * Math.sin(t * 3 + i);
+    const ex = x + Math.cos(a) * L, ey = y + Math.sin(a) * L, mx = x + Math.cos(a) * L * 0.5 + w, my = y + Math.sin(a) * L * 0.5;
+    s += `<path d="M${n(x)},${n(y)} Q${n(mx)},${n(my)} ${n(ex)},${n(ey)}" fill="none" stroke="#3a2a1e" stroke-width="${n(14 * sc)}" stroke-linecap="round"/>`;
+  }
+  return s;
+}
