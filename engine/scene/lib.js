@@ -2534,3 +2534,34 @@ function speechBubble(x, y, sc, s1 = '...', w = 360) {
   if (sc <= 0.01) return '';
   return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M${-w / 2},-70 Q${-w / 2},-110 ${-w / 2 + 40},-110 L${w / 2 - 40},-110 Q${w / 2},-110 ${w / 2},-70 L${w / 2},10 Q${w / 2},50 ${w / 2 - 40},50 L-40,50 L-90,110 L-80,50 L${-w / 2 + 40},50 Q${-w / 2},50 ${-w / 2},10 Z" fill="#fff" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>` + txt(0, -14, s1, 40, INK) + `</g>`;
 }
+// ---- blood colour pieces (2026-11-25) ----
+// forearm(x,y,sc,t,veinCol) forearm seen from the inside with veins, wrist at left; (x,y) = centre
+function forearm(x, y, sc, t = 0, veinCol = '#5a7fd6') {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><path d="M-360,-70 Q0,-110 380,-90 L380,90 Q0,110 -360,70 Z" fill="#f6d2b8" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-360,-70 Q-430,-80 -470,-30 Q-490,10 -470,40 Q-430,80 -360,70" fill="#f6d2b8" stroke="${INK}" stroke-width="8"/><path d="M-340,-10 Q-150,-40 0,-15 Q160,10 360,-30 M-120,-28 Q-40,30 60,40 Q200,50 360,40 M100,-12 Q160,-60 300,-70" fill="none" stroke="${veinCol}" stroke-width="12" stroke-linecap="round" opacity="0.85"/></g>`;
+}
+// bloodTube(x,y,sc,col,ang) lab test tube filled with liquid (centre)
+function bloodTube(x, y, sc, col = '#b3122a', ang = 0) {
+  if (sc <= 0.01) return '';
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><path d="M-40,-160 L-40,120 Q-40,170 0,170 Q40,170 40,120 L40,-160 Z" fill="#eef6ff" stroke="${INK}" stroke-width="8"/><path d="M-32,-40 L-32,120 Q-32,162 0,162 Q32,162 32,120 L32,-40 Z" fill="${col}"/><rect x="-52" y="-190" width="104" height="36" rx="10" fill="#7fb3d9" stroke="${INK}" stroke-width="7"/><path d="M-24,-120 L-24,100" stroke="#fff" stroke-width="8" opacity="0.5" stroke-linecap="round"/></g>`;
+}
+// octopus(x,y,sc,t,col) cartoon octopus (head centre)
+function octopus(x, y, sc, t = 0, col = '#e8789a') {
+  if (sc <= 0.01) return '';
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  for (let i = 0; i < 6; i++) { const ax = -100 + i * 40, w = 30 * Math.sin(t * 4 + i); s += `<path d="M${ax},40 Q${n(ax + w)},120 ${n(ax - w)},200" fill="none" stroke="${INK}" stroke-width="34" stroke-linecap="round"/><path d="M${ax},40 Q${n(ax + w)},120 ${n(ax - w)},200" fill="none" stroke="${col}" stroke-width="22" stroke-linecap="round"/>`; }
+  s += `<path d="M-130,40 Q-140,-150 0,-150 Q140,-150 130,40 Q0,70 -130,40 Z" fill="${col}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><circle cx="-45" cy="-30" r="22" fill="#fff" stroke="${INK}" stroke-width="5"/><circle cx="45" cy="-30" r="22" fill="#fff" stroke="${INK}" stroke-width="5"/><circle cx="-40" cy="-26" r="10" fill="${INK}"/><circle cx="50" cy="-26" r="10" fill="${INK}"/><path d="M-20,14 Q0,30 20,14" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>`;
+  return s + `</g>`;
+}
+// horseshoeCrab(x,y,sc,t) top view horseshoe crab with tail spike (centre)
+function horseshoeCrab(x, y, sc, t = 0) {
+  if (sc <= 0.01) return '';
+  const w = 8 * Math.sin(t * 3);
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(w)}) scale(${n(sc)})"><path d="M0,60 L${n(10 * Math.sin(t * 5))},300" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M0,60 L${n(10 * Math.sin(t * 5))},300" stroke="#8a6a3a" stroke-width="12" stroke-linecap="round"/><path d="M-120,40 L-90,120 L90,120 L120,40 Z" fill="#9a7a44" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-200,60 Q-200,-180 0,-180 Q200,-180 200,60 Q100,20 0,30 Q-100,20 -200,60 Z" fill="#b08a4a" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-110,-60 Q0,-110 110,-60" fill="none" stroke="#7d5f2e" stroke-width="7"/><circle cx="-70" cy="-90" r="12" fill="${INK}"/><circle cx="70" cy="-90" r="12" fill="${INK}"/></g>`;
+}
+// lightRay(x0,y0,x1,y1,col,p) light arrow drawn from (x0,y0) toward (x1,y1), p 0..1 progress
+function lightRay(x0, y0, x1, y1, col = '#4f7fe0', p = 1) {
+  if (p <= 0.01) return '';
+  const x = x0 + (x1 - x0) * p, y = y0 + (y1 - y0) * p, a = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI;
+  return `<path d="M${n(x0)},${n(y0)} L${n(x)},${n(y)}" stroke="${col}" stroke-width="16" stroke-linecap="round" stroke-dasharray="30 18"/><g transform="translate(${n(x)} ${n(y)}) rotate(${n(a)})"><path d="M0,0 L-40,-24 L-40,24 Z" fill="${col}" stroke="${INK}" stroke-width="5"/></g>`;
+}
