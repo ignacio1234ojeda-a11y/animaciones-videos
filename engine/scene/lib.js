@@ -2240,6 +2240,8 @@ function dog(x, y, sc, o = {}) {
   s += `<path d="M60,60 Q90,${mood === 'happy' ? 80 : 66} 120,56" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`;
   const blink = (t % 3.1) < 0.12 ? 0.15 : 1;
   s += `<ellipse cx="30" cy="-20" rx="15" ry="${n(19 * blink)}" fill="${INK}"/><circle cx="35" cy="-27" r="5" fill="#fff"/>`;
+  if (o.shades) s += `<path d="M-15,-45 L110,-45 L104,-10 Q90,8 66,4 Q54,-6 48,-22 L38,-22 Q30,0 6,0 Q-14,-4 -15,-45 Z" fill="#1c1c1e"/><path d="M0,-38 L22,-38" stroke="#fff" stroke-width="5" opacity="0.6"/>`;
+  if (o.grey) s += `<path d="M40,40 Q60,80 90,72 Q120,80 130,40" fill="#e8e8e8" stroke="${INK}" stroke-width="5"/><path d="M10,-50 L50,-46" stroke="#e8e8e8" stroke-width="10" stroke-linecap="round"/>`;
   if (mood === 'confused') s += `<path d="M10,-55 L50,-45" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`;
   s += `<path d="M-25,-75 Q-10,-130 25,-90" fill="${dk}" stroke="${INK}" stroke-width="8"/>`;
   s += `</g></g>`;
