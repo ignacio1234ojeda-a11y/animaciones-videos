@@ -3,6 +3,7 @@
 // eyes + head look-at, random blinks, viseme mouth, captain coat/cap with secondary motion, attached head-wear.
 // Camera: per-shot moves (push/pull/pan/follow) over parallax background layers. Transitions: whip/wipe/zoom/match/slide/cut.
 window.STYLE = Object.assign(window.STYLE || {}, SPEC.style || {});
+window.BOIL_ITEMS = 1;
 const FX = window.STYLE.fx !== 0;
 
 // ---- face: viseme mouth (open + wide/round) and partial blinks on top of any guy face
@@ -88,7 +89,7 @@ const mouthAt = (t) => { const M = window.MOUTH; const i = Math.round(t * 60); i
 
 // ---- per-guy precompute: cumulative states, blinks, saccades
 function prepGuy(it) {
-  const base = { expr: it.expr, pose: it.pose || 'rest', look: it.look, lookAt: it.lookAt };
+  const base = { expr: it.expr, pose: it.pose || 'rest', look: it.look, lookAt: it.lookAt, glass: it.glass };
   const S = [{ t: -99, s: base, prev: base, poseT: -99, prevPose: base.pose, lookT: -99, prevLook: base, hop: false }];
   let cur = base;
   for (const [tc, c] of it.ch || []) {
@@ -189,7 +190,7 @@ function lookVec(it, s, R, t) {
 // full rig -> guy() options + world transform
 function rigGuy(it, t) {
   const R = rigCore(it, t), P = R.P, st = R.st, E = R.E;
-  const o = { expr: st.expr, t, body: it.body, legs: it.legs, wear: it.wear, glass: it.glass };
+  const o = { expr: st.expr, t, body: it.body, legs: it.legs, wear: it.wear, glass: st.glass };
   for (const k of ['armL', 'armR', 'bendL', 'bendR', 'pointL', 'pointR', 'legL', 'legR', 'kneeL', 'kneeR', 'footRotL', 'footRotR']) if (P[k] !== undefined && P[k] !== null) o[k] = P[k];
   o.sx = R.sx; o.sy = R.sy; o.lean = R.lean;
   if (P.sweat > 0.5) o.sweat = 1;
@@ -303,9 +304,12 @@ function drawShot(i, t, extra) {
   const sh = SPEC.shots[i], C = camState(i, t);
   let s = '';
   for (const [f, svg] of bgLayers(sh.bg, t)) s += f === 0 ? svg : `<g transform="${camT(C, f)}">${svg}</g>`;
-  let body = '';
-  for (const it of sh.items) body += drawItem(it, t, T, sh);
-  s += `<g transform="${camT(C, 1)}">${body}</g>`;
+  // headline labels are screen graphics: they ride only 30% of the camera move so they never leave the frame
+  let body = '', ui = '';
+  for (const it of sh.items) { const d = drawItem(it, t, T, sh); if (it.kind === 'label') ui += d; else body += d; }
+  const bo = +(window.STYLE.boil || 0);
+  if (bo > 0) body = boilSvg(body, Math.floor(t * 8) % 3, 1.1 * bo);   // only characters + props boil; the painted bg stays still
+  s += `<g transform="${camT(C, 1)}">${body}</g>` + (ui ? `<g transform="${camT(C, 0.3)}">${ui}</g>` : '');
   return extra ? `<g transform="${extra}">${s}</g>` : s;
 }
 

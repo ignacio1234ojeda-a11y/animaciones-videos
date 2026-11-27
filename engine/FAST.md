@@ -4,9 +4,8 @@
    `git clone --depth 1 https://github.com/ignacio1234ojeda-a11y/animaciones-videos ~/work && cd ~/work/engine && bash setup.sh` (prints OK).
 0b. FORMAT (user rule since 2026-11-19, modelled on the channel Weird Little Facts): a weird TRUE STORY from the past
    (bizarre cures, odd inventions, strange historical events) told as a mini story: hook -> who/where/when -> what went weird
-   -> it gets worse -> how it ended -> joke + loop. Host character: "Captain Curious" in every video = guy(x,y,sc, body="#1f3a68", legs="#fbfbf7", ...)
-   + art("captainCoat(x,y,sc) + captainCap(x,y,sc)") with the SAME x,y,sc; spyglass pose: guy(..., armR=... ) is not
-   exposed, so use art("spyglass(x+8*sc, y-306*sc, 0.55*sc, -10)") near the eye when he looks at something.
+   -> it gets worse -> how it ended -> joke + loop. Host character: "Captain Curious" in every video = the built-in
+   captain(x, y, sc, expr, pose, glass=False, ch=[...]) (coat, coat tails, cap and spyglass ride on his body; see ENGINE v4 below).
    Branding (avatar + banner) lives in branding/.
    Max 1-2 videos per day, more polish per video.
 1. Topic: not in the "Topics already used" list of project doc cartoon-engine/publishing.md. 1 web search to verify facts.
@@ -18,17 +17,44 @@
    - Last line must LOOP: it should lead naturally back into line 1 (e.g. ends "...so next time someone asks" -> "Can a day...").
    - Something new on screen every ~1.5 s (new item, expression change, count, pop). Shots <= ~3 s.
 3. `cp example-spec.py spec.py` and edit SCRIPT + SHOTS. Helpers:
-   shot(at, *items, bg='studio'|'day'|'night'|'space'|'paper'|'#hex', cam=(z0,z1), focus=(x,y))
+   shot(at, *items, bg='studio'|'day'|'night'|'space'|'paper'|'#hex', cam=(z0,z1), focus=(x,y), move=.., tr=..)
    guy(x,y,sc,expr,talk=True,pose,ch=[(anchor, dict(expr=..,pose=..))])  - talks with the voice, blinks, breathes, hops on change
-     poses: rest point pointL pointR ears shrug think wave cheer hips; exprs: curious smug surprised worried determined confused flat laugh cry
+   captain(x,y,sc,expr,pose,glass,ch)  - the host (returns a list: pass it as is or with *)
+     poses: rest point pointL pointR ears shrug think wave cheer hips walk run jump celebrate scared;
+     exprs: curious smug surprised worried determined confused flat laugh cry
    label(text, at, x,y,col,size)  stamp(text, at)  check(at, ok)  pop('BOOM!', at)  count(at, to, end, fmt='{} DAYS')
    art("anyLibFn(x, y, sc*k, t, ...)", at=...)  - JS expression with t, k (pop-in scale), T (T.cutN = shot N start)
    Anchors are script words: 'Sun', 'Sun#2' (2nd after shot start), 'fire+0.3', or seconds. A shot anchor must not match an
-   earlier word of the previous shot (e.g. "so" inside "spins so slowly"). Sounds, shakes, slide transitions, camera, lip-sync are automatic.
+   earlier word of the previous shot (e.g. "so" inside "spins so slowly"). Sounds, shakes, whip transitions, camera drift, blinks, lip-sync are automatic.
    Drawing pieces: `grep -o "^function [a-zA-Z0-9_]*" scene/lib.js` (add new ones to the END of lib.js so the library grows).
    1080x1920, keep art above y 1700 (subtitles at 1796).
    Shot 0 must be a strong frame at t=0: the main object/character + the question as a label with at=None
    (visible from frame 1). Never open on just the guy on an empty background.
+3b. ENGINE v4 (2026-11-27) - use in every new spec (old specs still render unchanged). Full demo: specs/dog-years-v2.py.
+   ACTING  captain()/guy() ch dicts take pose/expr/x/y/lookAt/look/glass/flip. Poses: rest point pointL pointR ears shrug think
+     wave cheer hips + walk run jump celebrate scared. ("word", dict(x=700)) walks there; dict(pose="run", x=..) runs;
+     dict(pose="jump", x=..) leaps; pose="jump" alone jumps in place; "celebrate" = hops + confetti + sparkle (auto expr laugh);
+     "scared" = recoil + tremble + sweat (auto expr surprised); "walk"/"run" alone = in place (pair with a pan).
+     Automatic: pose blending with overshoot, anticipation + squash/stretch on hops and landings, random blinks, viseme mouth,
+     cap/coat-tail secondary motion, facing flips to the walking direction (flip=True faces right).
+     lookAt=(x,y) on guy()/captain() or in ch: eyes + head turn to that screen point (default: screen centre).
+     Head-wear art drawn at the guy's own (x, y, sc) (hornHelmet, bicorne, crown, eyePatch, bandana, elderBeard...) follows him.
+     Keep his feet at y 1480-1730 (subtitles at 1796).
+   CAMERA  shot(..., move="push" | "pull" | ("push", 1.2) | ("pan", 300) | ("follow", item_index)); shake("word", amp=14) = impact
+     (thud + shake). Headline label()s move only 30% with the camera.
+   TRANSITION into each shot: tr="whip" (default) | "wipe" | "zoom" | "match" (give both shots the same focus=(x,y) on the
+     subject to keep it in place) | "cut" | "slide" (old). Each plays its own whoosh.
+   BACKGROUNDS bg="day" | "night" | "studio" | "space" | "paper" | "#hex" are now layered with parallax (sky gradient, sun/moon,
+     clouds, hills, trees, textured ground; ground line y 1480). Prefer them to flat art() rectangles.
+   SOUND  MUSIC = "curious" (default) | "spooky" | "upbeat" | None at the top of the spec: original bed generated in sfx.py,
+     ducked under the voice. Auto SFX: transition whooshes, footsteps, thuds (landings, shakes, stamps), sparkles (counts,
+     checks, celebrate). sparkle("word", x, y) = twinkle burst; art(..., reveal=(x, y)) adds one when the item pops in.
+   ART  STYLE = dict(cel=1, grain=1, boil=0) at the top of the spec (defaults shown). cel = one-tone shadow + rim light on the
+     guy and dog; grain = subtle paper texture (added at render); boil=1 = hand-drawn line wobble (free, use it for stories).
+     NEW props in lib.js: draw their main shapes with celShape({cx,cy,r} | {cx,cy,rx,ry} | {x,y,w,h,rx} | {d,size}, fill, {sw})
+     so they get the same shading. art(..., cel=True) is a filter version for odd props (slower: one prop, short shot).
+   Render speed ~75 ms per frame (video renders in 2 parallel parts): 20 s short ~1.5 min, 60 s story ~4.5 min, 90 s ~7 min
+   (make --video with timeout 600000; for longer stories run it in the background).
 4. `python3 make.py spec.py` -> voice (only if SCRIPT changed) + scene + cues + qa/sheet.png. Read it, fix clear problems.
 5. `python3 make.py spec.py --video NAME` (timeout 600000) -> out/NAME-1080p.mp4 (native 1080p60, ~80 s; --hq = old 4K path, ~5 min).
 6. Publish: `cp out/NAME-1080p.mp4 ../videos/ && cp spec.py ../specs/NAME.py` then commit + push (also lib.js if it grew).

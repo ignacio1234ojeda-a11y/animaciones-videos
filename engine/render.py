@@ -44,6 +44,13 @@ def grain_png(pg):
         dark = v > 0
         a[dark] = [70, 52, 36, 0]; a[~dark] = [255, 250, 238, 0]
         a[..., 3] = np.clip(np.where(dark, v * 34, -v * 30) * g, 0, 255).astype(np.uint8)
+        # soft vignette (edges a little darker) baked into the same static overlay
+        yy, xx = np.mgrid[0:960, 0:540]
+        d = np.sqrt(((xx - 270) / 300.0) ** 2 + ((yy - 430) / 560.0) ** 2)
+        vig = np.clip((d - 0.62) / 0.55, 0, 1) ** 1.6 * 34 * min(1.0, g)
+        dk = vig > a[..., 3] * 0.5
+        a[dk, 0:3] = [36, 24, 48]
+        a[..., 3] = np.maximum(a[..., 3], vig).astype(np.uint8)
         Image.fromarray(a, "RGBA").resize((1080, 1920), Image.BILINEAR).save(path)
     return path
 
@@ -58,6 +65,8 @@ def with_grain(png_bytes, gp):
 def shot(pg, t, fmt="png"):
     pg.evaluate(f"window.renderAt({t})")
     # page clip is ~2x faster than locator.screenshot (no element lookup / scroll per frame)
+    if fmt == "jpeg":  # v4 video frames: JPEG q96 encodes much faster than PNG for textured frames; x264 re-encodes anyway
+        return pg.screenshot(type="jpeg", quality=96, clip=dict(x=0, y=0, width=1080, height=1920), animations="disabled")
     return pg.screenshot(type=fmt, clip=dict(x=0, y=0, width=1080, height=1920), animations="disabled")
 
 
@@ -97,24 +106,49 @@ def main():
             args = sys.argv[3:]
             opt = {args[i]: args[i + 1] for i in range(0, len(args), 2)}
             fps = int(opt.get("--fps", 60)); scale = float(opt.get("--scale", 1))
+            jobs = int(opt.get("--jobs", 2))
+            if jobs > 1:  # v4: render frame ranges in parallel Chrome processes, then join them without re-encoding
+                b, pg = open_page(p, scale)
+                end = float(opt.get("--end", end_time(pg))); start = float(opt.get("--start", 0)); b.close()
+                f0, f1 = int(round(start * fps)), int(round(end * fps))
+                cuts = [f0 + (f1 - f0) * k // jobs for k in range(jobs + 1)]
+                tmp = Path(out).with_suffix(""); parts = []
+                procs = []
+                for k in range(jobs):
+                    part = f"{tmp}.part{k}.mp4"; parts.append(part)
+                    a = [sys.executable, __file__, "video", part, "--fps", str(fps), "--scale", str(scale), "--jobs", "1",
+                         "--start", repr(cuts[k] / fps), "--end", repr(cuts[k + 1] / fps), "--crf", opt.get("--crf", "16"), "--preset", opt.get("--preset", "veryfast")]
+                    procs.append(subprocess.Popen(a))
+                for pr in procs:
+                    if pr.wait() != 0: raise SystemExit("segment render failed")
+                lst = f"{tmp}.parts.txt"
+                Path(lst).write_text("".join(f"file '{Path(x).resolve()}'\n" for x in parts))
+                cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst]
+                if "--audio" in opt: cmd += ["-i", opt["--audio"], "-map", "0:v", "-map", "1:a", "-c:a", "aac", "-b:a", "256k", "-shortest"]
+                cmd += ["-c:v", "copy", "-movflags", "+faststart", out]
+                subprocess.run(cmd, check=True)
+                for x in parts + [lst]: Path(x).unlink(missing_ok=True)
+                print(f"done {f1 - f0} frames in {jobs} parallel parts")
+                return
             b, pg = open_page(p, scale)
             end = float(opt.get("--end", end_time(pg))); start = float(opt.get("--start", 0))
             nframes = int(round((end - start) * fps))
             gp = grain_png(pg)
-            cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", str(fps), "-c:v", "png", "-i", "-"]
+            vfmt = opt.get("--frames", "jpeg")
+            cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", str(fps), "-c:v", "mjpeg" if vfmt == "jpeg" else "png", "-i", "-"]
             if gp:
                 cmd += ["-loop", "1", "-i", str(gp)]
             if "--audio" in opt:
                 cmd += ["-i", opt["--audio"], "-c:a", "aac", "-b:a", "256k", "-shortest"]
             if gp:
-                cmd += ["-filter_complex", f"[0:v][1:v]overlay=0:0:shortest=1:format=auto,scale={int(1080 * scale)}:{int(1920 * scale)}[v]", "-map", "[v]"]
+                cmd += ["-filter_complex", f"[0:v][1:v]overlay=0:0:shortest=1:format=yuv420,scale={int(1080 * scale)}:{int(1920 * scale)}[v]", "-map", "[v]"]
                 if "--audio" in opt: cmd += ["-map", "2:a"]
             cmd += ["-c:v", "libx264", "-preset", opt.get("--preset", "veryfast"), "-crf", opt.get("--crf", "16"),
                     "-pix_fmt", "yuv420p", "-r", str(fps), "-movflags", "+faststart", out]
             ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
             t0 = time.time()
             for i in range(nframes):
-                ff.stdin.write(shot(pg, start + i / fps))
+                ff.stdin.write(shot(pg, start + i / fps, vfmt))
                 if i % 120 == 0:
                     print(f"frame {i}/{nframes}  {time.time() - t0:.0f}s", flush=True)
             ff.stdin.close(); ff.wait(); b.close()

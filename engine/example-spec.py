@@ -1,4 +1,4 @@
-# Venus: a day longer than a year (spec mode v1)
+# Venus: a day longer than a year (spec mode, engine v4 options: MUSIC, STYLE, captain(), move=, tr=, lookAt, ch poses)
 SCRIPT = [
     "Can a day last longer than a year?",
     "On Venus, it does.",
@@ -8,19 +8,21 @@ SCRIPT = [
     "And it spins backwards, so the Sun rises in the west.",
     "Venus basically runs on its own clock.",
 ]
+MUSIC = "curious"          # 'curious' | 'spooky' | 'upbeat' | None
+STYLE = dict(boil=1)       # cel=1, grain=1 are on by default
 VEN = "'#f2b45a'"
 SHOTS = [
     shot(0,
-         guy(x=540, y=1480, sc=2.1, expr="curious", ch=[("longer", dict(expr="confused", pose="think"))]),
+         captain(540, 1480, 2.1, "curious", ch=[("longer", dict(expr="confused", pose="think"))]),
          art("calendarPage(260, 640, 1.0*k, 'DAY', '1', '#4fa3e0', -6)", at="day"),
          art("calendarPage(820, 640, 1.0*k, 'YEAR', '1', '#e8413a', 6)", at="year"),
-         label("DAY > YEAR ?", None, y=230)  # hook visible from frame 1,
-         ),
+         label("DAY > YEAR ?", None, y=230),  # hook visible from frame 1
+         bg="studio", move="push"),
     shot("On",
          art(f"planet(540, 900, 330*k, {VEN}, t, {{face:'happy', spin:0.05}})", at="On"),
          label("VENUS", "Venus", y=300, col="#f2b45a"),
          stamp("YES!", "does", y=1380, col="#2fa84f"),
-         bg="space", cam=(1.0, 1.08), focus=(540, 900)),
+         bg="space", tr="zoom", move="push", focus=(540, 900)),
     shot("Venus#2",
          art("sunFace(540, 900, 0.75, t)"),
          art("orbitRing(540, 900, 400, 400, 1)"),
@@ -39,8 +41,8 @@ SHOTS = [
          art("cake(540, 1000, 1.5*k, t)", at="birthday"),
          label("HAPPY BIRTHDAY!", "birthday", y=300, col="#f7b2c8"),
          art("calendarPage(830, 560, 0.75*k, 'TODAY', 'STILL', '#4fa3e0', 8)", at="tomorrow"),
-         guy(x=230, y=1480, sc=1.5, expr="smug", pose="cheer", ch=[("tomorrow", dict(expr="surprised", pose="shrug"))]),
-         bg="#fff0f4"),
+         captain(230, 1600, 1.4, "smug", pose="celebrate", lookAt=(540, 1000), ch=[("tomorrow", dict(expr="surprised", pose="shrug"))]),
+         bg="#fff0f4", tr="wipe"),
     shot("And",
          art(f"planet(540, 640, 230*k, {VEN}, t, {{face:'happy', spin:-0.2}})", at="And"),
          art("arrowCurve(540, 640, 300, -30, -150, '#ff8a3d')", at="backwards"),
@@ -53,6 +55,6 @@ SHOTS = [
          art(f"planet(540, 820, 280, {VEN}, t, {{face:'happy', spin:0.03}})"),
          art("wallClock(540, 820, 150, -t*240, 0, 0.9*k)", at="clock"),
          label("ITS OWN CLOCK", "own", y=260),
-         guy(x=860, y=1480, sc=1.4, expr="smug", pose="point"),
-         bg="space"),
+         captain(860, 1600, 1.4, "smug", pose="point", lookAt=(540, 820)),
+         bg="space", move="pull"),
 ]

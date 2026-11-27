@@ -6,3 +6,4 @@ engine/*.bin
 engine/config.json
 engine/us_*.json
 __pycache__/
+engine/scene/grain-*.png

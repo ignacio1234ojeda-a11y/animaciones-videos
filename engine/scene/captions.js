@@ -1,132 +1,132 @@
 window.CAPTIONS = [
  {
-  "t0": 0.07,
-  "t1": 0.581,
-  "text": "Can a day"
+  "t0": 0.0,
+  "t1": 0.678,
+  "text": "Is one dog"
  },
  {
-  "t0": 0.581,
-  "t1": 1.263,
-  "text": "last longer than"
+  "t0": 0.678,
+  "t1": 1.287,
+  "text": "year really"
  },
  {
-  "t0": 1.263,
-  "t1": 1.884,
-  "text": "a year?"
+  "t0": 1.287,
+  "t1": 2.581,
+  "text": "seven human years?"
  },
  {
-  "t0": 2.004,
-  "t1": 2.86,
-  "text": "On Venus, it"
+  "t0": 2.701,
+  "t1": 3.525,
+  "text": "Nope!"
  },
  {
-  "t0": 2.86,
-  "t1": 3.354,
-  "text": "does."
+  "t0": 3.645,
+  "t1": 4.259,
+  "text": "Dogs grow up"
  },
  {
-  "t0": 3.474,
-  "t1": 4.348,
-  "text": "Venus circles"
+  "t0": 4.259,
+  "t1": 5.078,
+  "text": "way faster at"
  },
  {
-  "t0": 4.348,
-  "t1": 5.004,
-  "text": "the Sun in"
+  "t0": 5.078,
+  "t1": 5.768,
+  "text": "the start."
  },
  {
-  "t0": 5.004,
-  "t1": 5.659,
-  "text": "two hundred"
+  "t0": 5.888,
+  "t1": 6.537,
+  "text": "By their first"
  },
  {
-  "t0": 5.659,
-  "t1": 6.315,
-  "text": "twenty-five"
+  "t0": 6.537,
+  "t1": 6.969,
+  "text": "birthday,"
  },
  {
-  "t0": 6.315,
-  "t1": 7.032,
-  "text": "Earth days."
+  "t0": 6.969,
+  "t1": 7.618,
+  "text": "they're like a"
  },
  {
-  "t0": 7.152,
-  "t1": 7.853,
-  "text": "But it spins"
+  "t0": 7.618,
+  "t1": 8.483,
+  "text": "fifteen year old"
  },
  {
-  "t0": 7.853,
-  "t1": 8.788,
-  "text": "so slowly, one"
+  "t0": 8.483,
+  "t1": 9.412,
+  "text": "teenager."
  },
  {
-  "t0": 8.788,
-  "t1": 9.723,
-  "text": "turn takes two"
+  "t0": 9.532,
+  "t1": 10.158,
+  "text": "Year two adds"
  },
  {
-  "t0": 9.723,
-  "t1": 10.191,
-  "text": "hundred"
+  "t0": 10.158,
+  "t1": 11.272,
+  "text": "about nine more."
  },
  {
-  "t0": 10.191,
-  "t1": 10.938,
-  "text": "forty-three."
+  "t0": 11.392,
+  "t1": 12.299,
+  "text": "After that, it's"
  },
  {
-  "t0": 11.058,
-  "t1": 11.807,
-  "text": "So your birthday"
+  "t0": 12.299,
+  "t1": 12.98,
+  "text": "roughly five"
  },
  {
-  "t0": 11.807,
-  "t1": 12.369,
-  "text": "would show up"
+  "t0": 12.98,
+  "t1": 13.887,
+  "text": "human years per"
  },
  {
-  "t0": 12.369,
-  "t1": 13.306,
-  "text": "before tomorrow"
+  "t0": 13.887,
+  "t1": 14.621,
+  "text": "dog year."
  },
  {
-  "t0": 13.306,
-  "t1": 13.773,
-  "text": "does."
+  "t0": 14.741,
+  "t1": 15.254,
+  "text": "And size"
  },
  {
-  "t0": 13.893,
-  "t1": 14.543,
-  "text": "And it spins"
+  "t0": 15.254,
+  "t1": 16.023,
+  "text": "matters. Big"
  },
  {
-  "t0": 14.543,
-  "t1": 15.192,
-  "text": "backwards, so"
+  "t0": 16.023,
+  "t1": 17.048,
+  "text": "dogs age faster"
  },
  {
-  "t0": 15.192,
-  "t1": 16.058,
-  "text": "the Sun rises"
+  "t0": 17.048,
+  "t1": 18.097,
+  "text": "than small ones."
  },
  {
-  "t0": 16.058,
-  "t1": 16.988,
-  "text": "in the west."
+  "t0": 18.217,
+  "t1": 18.783,
+  "text": "So your one"
  },
  {
-  "t0": 17.108,
-  "t1": 18.104,
-  "text": "Venus basically"
+  "t0": 18.783,
+  "t1": 19.538,
+  "text": "year old puppy?"
  },
  {
-  "t0": 18.104,
-  "t1": 18.702,
-  "text": "runs on its"
+  "t0": 19.538,
+  "t1": 20.293,
+  "text": "Basically a"
  },
  {
-  "t0": 18.702,
-  "t1": 19.381,
-  "text": "own clock."
+  "t0": 20.293,
+  "t1": 21.516,
+  "text": "moody teenager."
  }
 ];

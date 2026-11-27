@@ -161,7 +161,8 @@ def attach_wear(items):
             if not c: tgt = None; break
             tgt.add(id(min(c, key=lambda g: abs(ax - g["x"]))))
         if tgt and len(tgt) == 1:
-            g = next(g for g in guys if id(g) == tgt.pop())
+            tid = tgt.pop()
+            g = next(g for g in guys if id(g) == tid)
             it["attach"] = out.index(g); g["attachN"] = g.get("attachN", 0) + 1
     return out
 

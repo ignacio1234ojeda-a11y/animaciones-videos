@@ -1,6 +1,6 @@
 """Cartoon sound-effects library + mixer (full library, v3).
 
-python3 sfx.py OUT.wav --vo vo/take1.wav [--vo-at 0.1] [--cues cues.py] [--music curious|spooky|upbeat] [--music-db -15]
+python3 sfx.py OUT.wav --vo vo/take1.wav [--vo-at 0.1] [--cues cues.py] [--music curious|spooky|upbeat] [--music-db -12]
 """
 import re, subprocess, sys, wave
 from pathlib import Path
@@ -669,7 +669,7 @@ def main():
             va = vo[np.abs(vo) > 1e-4]
             vr = np.sqrt(np.mean(va ** 2)) if len(va) else 0.1
             br = np.sqrt(np.mean(bed ** 2)) + 1e-9
-            bed *= vr * 10 ** (float(opt.get("--music-db", -15)) / 20) / br
+            bed *= vr * 10 ** (float(opt.get("--music-db", -12)) / 20) / br
             bed *= duck_gain(vo, len(mix), float(opt.get("--vo-at", 0.1)))
         else:
             bed *= 0.12 / (np.sqrt(np.mean(bed ** 2)) + 1e-9)

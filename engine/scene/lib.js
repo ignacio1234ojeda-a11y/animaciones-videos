@@ -1257,7 +1257,8 @@ window.renderAt = function (t) {
   const [sx, sy] = shakeAt(t);
   const bg = window.BG || '#ffe2ad';
   const bo = +(window.STYLE.boil || 0);
-  const scene = `<g transform="translate(${n(sx)} ${n(sy)})"><rect x="-60" y="-60" width="${W + 120}" height="${H + 120}" fill="${bg}"/>${bo > 0 ? boilSvg(body, Math.floor(t * 8) % 3, 1.1 * bo) : body}</g>`;
+  // boil: spec runtime boils only characters/props (window.BOIL_ITEMS); other scene code boils the whole frame
+  const scene = `<g transform="translate(${n(sx)} ${n(sy)})"><rect x="-60" y="-60" width="${W + 120}" height="${H + 120}" fill="${bg}"/>${bo > 0 && !window.BOIL_ITEMS ? boilSvg(body, Math.floor(t * 8) % 3, 1.1 * bo) : body}</g>`;
   const sceneEl = document.getElementById('scene'), capEl = document.getElementById('caps');
   if (sceneEl && capEl) {
     sceneEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${_defs}${scene}</svg>`;
@@ -2768,6 +2769,12 @@ function speedStreaks(x, y, t, sc = 1, dir = 1) {
 // 1 = moves with the characters. Wide enough (x -900..1980) for pans and zoom-outs. Horizon/floor line stays at y 1480.
 const BGX0 = -900, BGX1 = 1980;
 function hex6(c) { return /^#[0-9a-f]{3}$/i.test(c) ? '#' + c.slice(1).split('').map((h) => h + h).join('') : c; }
+// glowRings(cx,cy,r,col,n,op,ry) soft glow made of flat concentric discs (cheap, cel-style; radial gradients are slow)
+function glowRings(cx, cy, r, col, cnt = 4, op = 0.1, ry = null) {
+  let s = '';
+  for (let i = 0; i < cnt; i++) { const u = 1 - i / cnt; s += `<ellipse cx="${n(cx)}" cy="${n(cy)}" rx="${n(r * u)}" ry="${n((ry || r) * u)}" fill="${col}" opacity="${op}"/>`; }
+  return s;
+}
 function bgHills(y, amp, col, seed, cnt = 6, edge = 0.35) {
   const r = rng(seed), step = (BGX1 - BGX0) / cnt;
   let d = `M${BGX0},${H + 300} L${BGX0},${n(y)}`;
@@ -2809,7 +2816,7 @@ function stars4(t, cnt, seed, rMax, speed = 1.5) {
 const BG4 = {
   studio: (t) => [
     [0, `<rect width="${W}" height="${H}" fill="url(#studio)"/>`],
-    [0.25, `<ellipse cx="540" cy="760" rx="620" ry="760" fill="url(#spot4)"/>` +
+    [0.25, glowRings(540, 760, 620, '#ffffff', 4, 0.1, 760) +
       [-560, -180, 200, 580, 960, 1340].map((x) => `<rect x="${x}" y="260" width="300" height="1060" rx="40" fill="#cdb8f6" opacity="0.45" stroke="#b9a0ee" stroke-width="6" stroke-opacity="0.5"/>`).join('') +
       Array.from({ length: 7 }, (_, i) => `<circle cx="${(i * 233 + 90) % 1600 - 260}" cy="${200 + (i * 151) % 900}" r="${10 + (i * 7) % 18}" fill="#fff" opacity="${n(0.25 + 0.15 * Math.sin(t * 1.3 + i))}"/>`).join('')],
     [1, (() => { let s = `<rect x="${BGX0}" y="1480" width="${BGX1 - BGX0}" height="740" fill="#c9b6f2"/><rect x="${BGX0}" y="1480" width="${BGX1 - BGX0}" height="80" fill="url(#floorSh4)"/>`;
@@ -2819,25 +2826,25 @@ const BG4 = {
   ],
   day: (t) => [
     [0, `<rect width="${W}" height="${H}" fill="url(#skyDay4)"/>`],
-    [0.08, `<circle cx="860" cy="330" r="230" fill="url(#sunGlow4)"/><circle cx="860" cy="330" r="74" fill="#ffe066" stroke="${INK}" stroke-width="6" stroke-opacity="0.35"/>` +
+    [0.08, glowRings(860, 330, 200, '#fff6b0', 4, 0.22) + `<circle cx="860" cy="330" r="74" fill="#ffe066" stroke="${INK}" stroke-width="6" stroke-opacity="0.35"/>` +
       bgCloud(((80 + t * 14) % 1900) - 400, 480, 1.0) + bgCloud(((900 + t * 9) % 1900) - 400, 300, 0.75, 0.85) + bgCloud(((1500 + t * 11) % 1900) - 400, 640, 0.6, 0.8)],
     [0.3, bgHills(1300, 260, '#a9d9a0', 4, 5, 0.25)],
     [0.55, bgHills(1420, 150, '#86c777', 9, 7, 0.4) + [-520, -150, 330, 760, 1180, 1600].map((x, i) => bgTree(x, 1405 - (i % 2) * 18, 0.65 + 0.12 * (i % 3), i % 2 ? '#62b35a' : '#4f9f4a')).join('')],
-    [1, groundTex(1480, '#8fcf5f', '#6db446', 7)],
+    [1, groundTex(1480, '#8fcf5f', '#6db446', 7, 46)],
   ],
   night: (t) => [
     [0, `<rect width="${W}" height="${H}" fill="url(#skyNight4)"/>`],
-    [0.06, stars4(t, 70, 21, 3) + `<circle cx="820" cy="360" r="220" fill="url(#moonGlow4)"/><circle cx="820" cy="360" r="78" fill="#fff6d5" stroke="${INK}" stroke-width="6" stroke-opacity="0.4"/><circle cx="792" cy="340" r="16" fill="#efe2b8"/><circle cx="842" cy="392" r="11" fill="#efe2b8"/>`],
+    [0.06, stars4(t, 70, 21, 3) + glowRings(820, 360, 200, '#fff8d6', 4, 0.08) + `<circle cx="820" cy="360" r="78" fill="#fff6d5" stroke="${INK}" stroke-width="6" stroke-opacity="0.4"/><circle cx="792" cy="340" r="16" fill="#efe2b8"/><circle cx="842" cy="392" r="11" fill="#efe2b8"/>`],
     [0.3, bgHills(1320, 240, '#28385a', 6, 5, 0.3)],
     [0.55, bgHills(1430, 140, '#2f4a45', 12, 7, 0.4)],
-    [1, groundTex(1480, '#3c5a3a', '#2c472b', 8)],
+    [1, groundTex(1480, '#3c5a3a', '#2c472b', 8, 46)],
   ],
   space: (t) => [
     [0, `<rect width="${W}" height="${H}" fill="url(#space4)"/>`],
-    [0.06, `<ellipse cx="220" cy="520" rx="620" ry="420" fill="url(#nebA4)"/><ellipse cx="900" cy="1300" rx="560" ry="480" fill="url(#nebB4)"/><ellipse cx="1300" cy="300" rx="500" ry="300" fill="url(#nebA4)"/>` + stars4(t, 90, 13, 2.2, 1.1)],
+    [0.06, glowRings(220, 520, 620, '#9a6cff', 4, 0.07, 420) + glowRings(900, 1300, 560, '#2fd0e6', 4, 0.05, 480) + stars4(t, 90, 13, 2.2, 1.1)],
     [0.3, stars4(t, 26, 31, 4.5, 1.8)],
   ],
-  paper: () => [[0, (() => { let s = `<rect width="${W}" height="${H}" fill="#fff8e6"/>`; for (let y = 120; y < H; y += 90) s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#ecdfc0" stroke-width="4"/>`; return s + `<line x1="130" y1="0" x2="130" y2="${H}" stroke="#f4b6b0" stroke-width="4"/><rect width="${W}" height="${H}" fill="url(#vig4)"/>`; })()]],
+  paper: () => [[0, (() => { let s = `<rect width="${W}" height="${H}" fill="#fff8e6"/>`; for (let y = 120; y < H; y += 90) s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#ecdfc0" stroke-width="4"/>`; return s + `<line x1="130" y1="0" x2="130" y2="${H}" stroke="#f4b6b0" stroke-width="4"/>`; })()]],
   // plain colour backdrop: soft centre light + vignette + faint distant shapes
   color: (t, c) => {
     const col = hex6(c), ok = /^#[0-9a-f]{6}$/i.test(col);
@@ -2845,7 +2852,7 @@ const BG4 = {
     const r = rng(parseInt(col.slice(1), 16) % 9973 + 1), tint = mixHex(col, '#ffffff', 0.35), deep = mixHex(col, '#1c1c3a', 0.07);
     let far = '';
     for (let i = 0; i < 7; i++) far += `<circle cx="${n(BGX0 + 200 + r() * 2400)}" cy="${n(150 + r() * 1500)}" r="${n(90 + r() * 220)}" fill="${i % 3 ? tint : deep}" opacity="${n(i % 3 ? 0.28 + 0.15 * r() : 0.12)}"/>`;
-    return [[0, `<rect width="${W}" height="${H}" fill="${col}"/>`], [0.2, far], [0, `<rect width="${W}" height="${H}" fill="url(#lift4)"/><rect width="${W}" height="${H}" fill="url(#vig4)"/>`]];
+    return [[0, `<rect width="${W}" height="${H}" fill="${col}"/>` + glowRings(540, 820, 760, '#ffffff', 3, 0.07, 900)], [0.2, far]];
   },
 };
 function bgLayers(b, t) {
