@@ -4,13 +4,15 @@
 <meta charset="utf-8">
 <style>
   html, body { margin: 0; padding: 0; background: #000; }
-  #stage { width: 1080px; height: 1920px; overflow: hidden; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  #stage > div { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  #grain { background-size: 1080px 1920px; pointer-events: none; }
   svg { display: block; }
   #fontwarm { font-family: 'Poppins'; font-weight: 700; font-style: italic; position: absolute; left: -9999px; }
 </style>
 </head>
 <body>
-<div id="stage"></div>
+<div id="stage"><div id="scene"></div><div id="grain"></div><div id="caps"></div></div>
 <div id="fontwarm">from a friend</div>
 <script src="timing.js"></script>
 <script src="captions.js"></script>

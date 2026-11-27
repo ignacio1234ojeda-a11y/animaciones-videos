@@ -105,21 +105,57 @@ function guyHead(o) {
   if (o.tuft) s += `<path d="M-6,-370 C-2,-400 22,-404 26,-384 C14,-392 6,-386 4,-371" fill="${INK}" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`;
   return s + guyFace(o);
 }
+// v4 (2026-11-27): optional o.legL/o.legR [ankleX, ankleY] + o.kneeL/o.kneeR (walk/run/jump legs), o.headTilt (deg, neck pivot),
+// o.wear:'captain' (coat tails + collar + cap drawn ON the body, with o.capRot/o.capLift/o.coatSwing secondary motion),
+// o.glass (spyglass at the eye), o.sweat, o.headWear (svg in head space). STYLE.cel: one-tone cel shadow + rim light.
+function guyLegs(o, skin, legs) {
+  const L = o.legL || [-26, -14], R = o.legR || [22, -14];
+  const path = (hx, hy, f, k) => `M${hx},${hy} Q${n((hx + f[0]) / 2 - (k || 0))},${n((hy + f[1]) / 2)} ${n(f[0])},${n(f[1])}`;
+  const d = path(-22, -96, L, o.kneeL) + ' ' + path(22, -96, R, o.kneeR);
+  let s = `<path d="${d}" fill="none" stroke="${INK}" stroke-width="32" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${legs}" stroke-width="18" stroke-linecap="round"/>`;
+  for (const [f, r] of [[L, o.footRotL || 0], [R, o.footRotR || 0]]) s += `<ellipse cx="${n(f[0] - 14)}" cy="${n(f[1] + 5)}" rx="28" ry="13" fill="${skin}" stroke="${INK}" stroke-width="6"${r ? ` transform="rotate(${n(r)} ${n(f[0])} ${n(f[1])})"` : ''}/>`;
+  return s;
+}
+function coatTails(sw, col, fl = 0) {
+  let s = '';
+  for (const [sd, px] of [[1, 30], [-1, -32]]) {
+    const a = sw * (sd < 0 ? 1 : 0.75) - sd * fl;
+    s += `<g transform="rotate(${n(a)} ${px} -106)"><path d="M${px - 24},-110 Q${px - 30 + 4 * sd},-72 ${px - 26 + 10 * sd},-40 Q${px + 2 + 6 * sd},-30 ${px + 24 + 10 * sd},-42 Q${px + 26},-76 ${px + 22},-110 Z" fill="${col}" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/><path d="M${px - 18 + 8 * sd},-96 Q${px - 20 + 8 * sd},-70 ${px - 16 + 10 * sd},-46" fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="7" stroke-linecap="round"/></g>`;
+  }
+  return s;
+}
 function guy(o) {
   const skin = o.skin || WHITE, shade = o.shade || SHADE, body = o.body || skin, legs = o.legs || body, bshade = o.body ? 'rgba(0,0,0,0.14)' : shade;
+  const cel = (window.STYLE || {}).cel !== 0;
+  const capt = o.wear === 'captain';
   let s = '';
-  s += `<path d="M-22,-96 L-26,-14 M22,-96 L22,-14" fill="none" stroke="${INK}" stroke-width="32" stroke-linecap="round"/>`;
-  s += `<path d="M-22,-96 L-26,-14 M22,-96 L22,-14" fill="none" stroke="${legs}" stroke-width="18" stroke-linecap="round"/>`;
-  s += `<ellipse cx="-40" cy="-9" rx="28" ry="13" fill="${skin}" stroke="${INK}" stroke-width="6"/>`;
-  s += `<ellipse cx="8" cy="-9" rx="28" ry="13" fill="${skin}" stroke="${INK}" stroke-width="6"/>`;
+  if (capt) s += coatTails(o.coatSwing || 0, body, o.coatFlare || 0);
+  if (o.legL || o.legR) s += guyLegs(o, skin, legs);
+  else {
+    s += `<path d="M-22,-96 L-26,-14 M22,-96 L22,-14" fill="none" stroke="${INK}" stroke-width="32" stroke-linecap="round"/>`;
+    s += `<path d="M-22,-96 L-26,-14 M22,-96 L22,-14" fill="none" stroke="${legs}" stroke-width="18" stroke-linecap="round"/>`;
+    s += `<ellipse cx="-40" cy="-9" rx="28" ry="13" fill="${skin}" stroke="${INK}" stroke-width="6"/>`;
+    s += `<ellipse cx="8" cy="-9" rx="28" ry="13" fill="${skin}" stroke="${INK}" stroke-width="6"/>`;
+  }
   const bc = uid('gb');
   const bd = 'M-46,-214 C-60,-160 -64,-112 -52,-88 Q0,-70 52,-88 C64,-112 60,-160 46,-214 Q0,-236 -46,-214 Z';
   s += `<defs><clipPath id="${bc}"><path d="${bd}"/></clipPath></defs>`;
-  s += `<path d="${bd}" fill="${body}"/><g clip-path="url(#${bc})"><ellipse cx="54" cy="-150" rx="30" ry="90" fill="${bshade}"/></g>`;
+  if (cel) {
+    // one-tone cel shadow (crescent, light from upper-left) + thin rim light on the lit edge
+    s += `<path d="${bd}" fill="${body}"/><g clip-path="url(#${bc})"><rect x="-80" y="-250" width="160" height="200" fill="${bshade}"/>` +
+      `<path d="${bd}" fill="${body}" transform="translate(-17 -10)"/>` +
+      `<path d="${bd}" fill="none" stroke="#fff" stroke-opacity="${o.body ? 0.32 : 0}" stroke-width="10" transform="translate(7 6)"/></g>`;
+  } else s += `<path d="${bd}" fill="${body}"/><g clip-path="url(#${bc})"><ellipse cx="54" cy="-150" rx="30" ry="90" fill="${bshade}"/></g>`;
   s += `<path d="${bd}" fill="none" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
+  if (capt) s += captainCoat(0, 0, 1);
   const L = o.armL || [-64, -118], R = o.armR || [64, -118];
   s += noodle(40, -196, R[0], R[1], o.bendR === undefined ? 18 : o.bendR, body);
-  s += guyHead(o);
+  let hd = guyHead(o);
+  if (capt) hd += captainCap(0, -(o.capLift || 0), 1, o.capRot || 0);
+  if (o.headWear) hd += o.headWear;
+  if (o.glass) { const lx = o.lookX || 0, ly = o.lookY || 0; hd += (lx >= 4 || o.glassBack) ? spyglass(8 + lx, -306 + ly, 0.55, -10) : `<g transform="translate(${n(-34 + lx - 8)} ${n(-306 + ly)}) scale(-1 1)">${spyglass(0, 0, 0.55, -10)}</g>`; }
+  if (o.sweat) { const u = ((o.t || 0) * 1.6) % 1; hd += `<path d="M58,${n(-372 + 40 * u)} q14,22 0,30 q-14,-8 0,-30 Z" fill="#8fd3ff" stroke="${INK}" stroke-width="4" opacity="${n(1 - u * 0.6)}"/>`; }
+  s += o.headTilt ? `<g transform="rotate(${n(o.headTilt)} 0 -228)">${hd}</g>` : hd;
   s += noodle(-40, -196, L[0], L[1], o.bendL === undefined ? -18 : o.bendL, body);
   if (o.propBehind) s = o.propBehind + s;
   if (o.prop) s += o.prop;
@@ -1155,12 +1191,60 @@ function defs() {
     <linearGradient id="iceBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dff4ff"/><stop offset="1" stop-color="#f4fbff"/></linearGradient>
     <radialGradient id="mint" cx="0.5" cy="0.4" r="0.8"><stop offset="0" stop-color="#eafaf3"/><stop offset="1" stop-color="#bfe8d6"/></radialGradient>
     <radialGradient id="purple" cx="0.5" cy="0.45" r="0.8"><stop offset="0" stop-color="#f1e6ff"/><stop offset="1" stop-color="#cdb6f2"/></radialGradient>
+    <clipPath id="frameClip"><rect x="0" y="0" width="1080" height="1920"/></clipPath>
     <clipPath id="clipTop"><rect x="-100" y="-100" width="1280" height="1060"/></clipPath>
     <clipPath id="clipBot"><rect x="-100" y="960" width="1280" height="1100"/></clipPath>
     <clipPath id="screenClip"><rect x="80" y="340" width="920" height="1100" rx="20"/></clipPath>
-    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>`;
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+    <radialGradient id="vig4" cx="0.5" cy="0.45" r="0.78"><stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#1a1030" stop-opacity="0.17"/></radialGradient>
+    <radialGradient id="lift4" cx="0.5" cy="0.42" r="0.55"><stop offset="0" stop-color="#fff" stop-opacity="0.28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="skyDay4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc0fb"/><stop offset="0.62" stop-color="#bfe6ff"/><stop offset="0.78" stop-color="#e9f7ff"/></linearGradient>
+    <radialGradient id="sunGlow4"><stop offset="0.3" stop-color="#fff3a6" stop-opacity="0.95"/><stop offset="1" stop-color="#fff3a6" stop-opacity="0"/></radialGradient>
+    <linearGradient id="skyNight4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121733"/><stop offset="0.75" stop-color="#2c3766"/></linearGradient>
+    <radialGradient id="moonGlow4"><stop offset="0.35" stop-color="#fff8d6" stop-opacity="0.55"/><stop offset="1" stop-color="#fff8d6" stop-opacity="0"/></radialGradient>
+    <radialGradient id="space4" cx="0.5" cy="0.4" r="0.8"><stop offset="0" stop-color="#262c62"/><stop offset="1" stop-color="#0b0e22"/></radialGradient>
+    <radialGradient id="nebA4"><stop offset="0" stop-color="#9a6cff" stop-opacity="0.38"/><stop offset="1" stop-color="#9a6cff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="nebB4"><stop offset="0" stop-color="#2fd0e6" stop-opacity="0.26"/><stop offset="1" stop-color="#2fd0e6" stop-opacity="0"/></radialGradient>
+    <radialGradient id="spot4" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="floorSh4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1030" stop-opacity="0.16"/><stop offset="1" stop-color="#1a1030" stop-opacity="0"/></linearGradient>`;
   for (let b = 1; b <= 40; b++) d += `<filter id="blur${b}" filterUnits="userSpaceOnUse" x="-200" y="-200" width="1480" height="2320"><feGaussianBlur stdDeviation="${b / 10}"/></filter>`;
+  // v4: horizontal motion blur for whip pans (whip1..whip8)
+  for (let b = 1; b <= 8; b++) d += `<filter id="whip${b}" filterUnits="userSpaceOnUse" x="-1300" y="-100" width="3700" height="2120"><feGaussianBlur stdDeviation="${b * 9} 0"/></filter>`;
+  // v4: cel(svg) filter for odd props (heavier to render: use on one hero prop; native celShape() is the cheap way)
+  for (let r = 4; r <= 24; r += 2) d += `<filter id="cel${r}" x="-4%" y="-4%" width="108%" height="108%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="${n(r * 0.7)}" result="bl"/>
+    <feComponentTransfer in="bl" result="in"><feFuncA type="linear" slope="14" intercept="-12.6"/></feComponentTransfer>
+    <feOffset in="in" dx="${-Math.round(r * 0.6) - 10}" dy="${-Math.round(r * 0.5) - 7}" result="o1"/><feComposite in="in" in2="o1" operator="out" result="b1"/>
+    <feFlood flood-color="#2b1d5c" flood-opacity="0.2"/><feComposite in2="b1" operator="in" result="sh"/>
+    <feOffset in="in" dx="5" dy="5" result="o2"/><feComposite in="in" in2="o2" operator="out" result="b2"/>
+    <feFlood flood-color="#ffffff" flood-opacity="0.45"/><feComposite in2="b2" operator="in" result="rim"/>
+    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="sh"/><feMergeNode in="rim"/></feMerge></filter>`;
   return d + `</defs>`;
+}
+// v4 style switches (spec STYLE = dict(...) overrides): cel shading on the guy, paper grain overlay, line boil
+window.STYLE = Object.assign({ cel: 1, grain: 1, boil: 0 }, window.STYLE || {});
+// paper grain is composited by render.py (ffmpeg overlay / PIL) from grain.png - free at render time
+// v4 line boil: hand-drawn wobble. Every path point gets a tiny offset that changes 8x per second and cycles through
+// 3 'drawings' (classic boil). Pure string work on the SVG = almost free. Paths with arcs are left alone.
+function ell2path(cx, cy, rx, ry) {
+  const k = 0.5523, a = rx * k, b = ry * k;
+  return `M${n(cx + rx)},${n(cy)} C${n(cx + rx)},${n(cy + b)} ${n(cx + a)},${n(cy + ry)} ${n(cx)},${n(cy + ry)} C${n(cx - a)},${n(cy + ry)} ${n(cx - rx)},${n(cy + b)} ${n(cx - rx)},${n(cy)} C${n(cx - rx)},${n(cy - b)} ${n(cx - a)},${n(cy - ry)} ${n(cx)},${n(cy - ry)} C${n(cx + a)},${n(cy - ry)} ${n(cx + rx)},${n(cy - b)} ${n(cx + rx)},${n(cy)} Z`;
+}
+function boilSvg(svg, seed, amp) {
+  let pi = 0;
+  svg = svg.replace(/<circle cx="([-\d.]+)" cy="([-\d.]+)" r="([\d.]+)"/g, (m, x, y, r) => +r < 6 ? m : `<path d="${ell2path(+x, +y, +r, +r)}"`)
+    .replace(/<ellipse cx="([-\d.]+)" cy="([-\d.]+)" rx="([\d.]+)" ry="([\d.]+)"/g, (m, x, y, rx, ry) => Math.min(+rx, +ry) < 6 ? m : `<path d="${ell2path(+x, +y, +rx, +ry)}"`);
+  return svg.replace(/ d="([^"]*)"/g, (m, d) => {
+    pi++;
+    if (/[Aa]/.test(d)) return m;
+    const base = pi * 7919 + seed * 104729, parts = d.split(/(-?\d*\.?\d+(?:e-?\d+)?)/);
+    const idx = []; for (let i = 1; i < parts.length; i += 2) idx.push(i);
+    const jit = idx.map((i, k) => { const h = Math.sin((base + (k + 1) * 374.761) * 12.9898) * 43758.5453; return n(parseFloat(parts[i]) + (h - Math.floor(h) - 0.5) * 2 * amp); });
+    const L = idx.length;
+    if (L >= 4 && parts[idx[L - 2]] === parts[idx[0]] && parts[idx[L - 1]] === parts[idx[1]]) { jit[L - 2] = jit[0]; jit[L - 1] = jit[1]; }
+    idx.forEach((i, k) => { parts[i] = jit[k]; });
+    return ' d="' + parts.join('') + '"';
+  });
 }
 let _defs = null;
 window.renderAt = function (t) {
@@ -1172,7 +1256,13 @@ window.renderAt = function (t) {
   const body = fn(t);
   const [sx, sy] = shakeAt(t);
   const bg = window.BG || '#ffe2ad';
-  document.getElementById('stage').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${_defs}<g transform="translate(${n(sx)} ${n(sy)})"><rect x="-60" y="-60" width="${W + 120}" height="${H + 120}" fill="${bg}"/>${body}</g>${captions(t)}</svg>`;
+  const bo = +(window.STYLE.boil || 0);
+  const scene = `<g transform="translate(${n(sx)} ${n(sy)})"><rect x="-60" y="-60" width="${W + 120}" height="${H + 120}" fill="${bg}"/>${bo > 0 ? boilSvg(body, Math.floor(t * 8) % 3, 1.1 * bo) : body}</g>`;
+  const sceneEl = document.getElementById('scene'), capEl = document.getElementById('caps');
+  if (sceneEl && capEl) {
+    sceneEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${_defs}${scene}</svg>`;
+    capEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${captions(t)}</svg>`;
+  } else document.getElementById('stage').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${_defs}${scene}${captions(t)}</svg>`;
 };
 
 // ====================================================== HELPERS from the yawn short (v3)
@@ -2228,14 +2318,15 @@ function dog(x, y, sc, o = {}) {
   let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n((o.flip ? -1 : 1) * sc)} ${n(sc)})">`;
   s += `<ellipse cx="0" cy="8" rx="170" ry="22" fill="#000" opacity="0.18"/>`;
   s += `<path d="M-140,-170 Q-200,${n(-240 - wag)} -215,${n(-280 - wag * 1.4)}" fill="none" stroke="${INK}" stroke-width="34" stroke-linecap="round"/><path d="M-140,-170 Q-200,${n(-240 - wag)} -215,${n(-280 - wag * 1.4)}" fill="none" stroke="${col}" stroke-width="20" stroke-linecap="round"/>`;
-  for (const lx of [-110, -60, 60, 110]) s += `<rect x="${lx - 18}" y="-110" width="36" height="110" rx="16" fill="${lx < 0 ? dk : col}" stroke="${INK}" stroke-width="8"/>`;
-  s += `<ellipse cx="0" cy="${n(-150 - bob * 0.3)}" rx="165" ry="85" fill="${col}" stroke="${INK}" stroke-width="9"/>`;
+  const celD = (window.STYLE || {}).cel !== 0;
+  for (const lx of [-110, -60, 60, 110]) s += celD ? celShape({ x: lx - 18, y: -110, w: 36, h: 110, rx: 16 }, lx < 0 ? dk : col, { sw: 8, k: 0.8 }) : `<rect x="${lx - 18}" y="-110" width="36" height="110" rx="16" fill="${lx < 0 ? dk : col}" stroke="${INK}" stroke-width="8"/>`;
+  s += celD ? celShape({ cx: 0, cy: -150 - bob * 0.3, rx: 165, ry: 85 }, col, { sw: 9 }) : `<ellipse cx="0" cy="${n(-150 - bob * 0.3)}" rx="165" ry="85" fill="${col}" stroke="${INK}" stroke-width="9"/>`;
   s += `<ellipse cx="-40" cy="${n(-170 - bob * 0.3)}" rx="55" ry="35" fill="${dk}" opacity="0.6"/>`;
   const hy = -270 - bob, ear = mood === 'confused' ? 25 : 0;
   s += `<g transform="translate(150 ${n(hy)}) rotate(${mood === 'confused' ? -14 : mood === 'sniff' ? 18 : 0})">`;
   s += `<path d="M-60,-40 Q-120,${-10 + ear} -95,90 Q-60,60 -35,0 Z" fill="${dk}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
-  s += `<circle cx="0" cy="0" r="85" fill="${col}" stroke="${INK}" stroke-width="9"/>`;
-  s += `<ellipse cx="85" cy="30" rx="62" ry="44" fill="#f0c896" stroke="${INK}" stroke-width="8"/><ellipse cx="138" cy="14" rx="20" ry="15" fill="${INK}"/>`;
+  s += celD ? celShape({ cx: 0, cy: 0, r: 85 }, col, { sw: 9 }) : `<circle cx="0" cy="0" r="85" fill="${col}" stroke="${INK}" stroke-width="9"/>`;
+  s += (celD ? celShape({ cx: 85, cy: 30, rx: 62, ry: 44 }, '#f0c896', { sw: 8, k: 0.8 }) : `<ellipse cx="85" cy="30" rx="62" ry="44" fill="#f0c896" stroke="${INK}" stroke-width="8"/>`) + `<ellipse cx="138" cy="14" rx="20" ry="15" fill="${INK}"/>`;
   if (mood === 'happy') s += `<path d="M70,62 Q80,120 105,112 Q120,100 108,64 Z" fill="#ff7a9a" stroke="${INK}" stroke-width="6"/>`;
   s += `<path d="M60,60 Q90,${mood === 'happy' ? 80 : 66} 120,56" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`;
   const blink = (t % 3.1) < 0.12 ? 0.15 : 1;
@@ -2597,4 +2688,168 @@ function wildHair(x, y, sc, t, len = 1, dir = -Math.PI / 2) {
     s += `<path d="M${n(x)},${n(y)} Q${n(mx)},${n(my)} ${n(ex)},${n(ey)}" fill="none" stroke="#3a2a1e" stroke-width="${n(14 * sc)}" stroke-linecap="round"/>`;
   }
   return s;
+}
+
+// ====================================================== ENGINE v4 (2026-11-27): art finish + effects
+// cel(svg, r) one-tone cel shadow + rim light on any prop (r = its outline width in px, 4..24). Not on backgrounds.
+function cel(svg, r = 10) { const k = Math.max(4, Math.min(24, 2 * Math.round(r / 2))); return `<g filter="url(#cel${k})">${svg}</g>`; }
+// celShape(shape, fill, o) cheap vector cel look: fill + one shadow tone (crescent, light from upper-left) + rim light + ink outline.
+// shape: {cx,cy,r} | {cx,cy,rx,ry} | {x,y,w,h,rx} | {d, size}. o: {sw: outline width, shade: overlay colour, k: shadow depth 0..1, rim: 0..1}
+// Use it when drawing NEW props so they match the characters (STYLE.cel = 0 -> flat fill + outline).
+function celShape(sh, fill, o = {}) {
+  const sw = o.sw === undefined ? 8 : o.sw;
+  const el = (a) => sh.d ? `<path d="${sh.d}" ${a}/>` : sh.r !== undefined ? `<circle cx="${n(sh.cx)}" cy="${n(sh.cy)}" r="${n(sh.r)}" ${a}/>`
+    : sh.w === undefined ? `<ellipse cx="${n(sh.cx)}" cy="${n(sh.cy)}" rx="${n(sh.rx)}" ry="${n(sh.ry)}" ${a}/>` : `<rect x="${n(sh.x)}" y="${n(sh.y)}" width="${n(sh.w)}" height="${n(sh.h)}" rx="${n(sh.rx || 0)}" ${a}/>`;
+  const line = el(`fill="none" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"`);
+  if ((window.STYLE || {}).cel === 0) return el(`fill="${fill}"`) + line;
+  const size = sh.size || (sh.r !== undefined ? sh.r : sh.w === undefined && sh.rx !== undefined ? Math.min(sh.rx, sh.ry) : Math.min(sh.w || 60, sh.h || 60) / 2);
+  const k = o.k === undefined ? 1 : o.k, dx = -(0.28 * size + sw * 0.6) * k, dy = -(0.2 * size + sw * 0.5) * k, id = uid('cs');
+  return `<defs><clipPath id="${id}">${el('')}</clipPath></defs>` + el(`fill="${fill}"`) +
+    `<g clip-path="url(#${id})">${el(`fill="${o.shade || 'rgba(40,22,90,0.2)'}"`)}${el(`fill="${fill}" transform="translate(${n(dx)} ${n(dy)})"`)}` +
+    `${el(`fill="none" stroke="#fff" stroke-opacity="${n(0.5 * (o.rim === undefined ? 1 : o.rim))}" stroke-width="${n(sw * 0.9)}" transform="translate(${n(sw * 0.6)} ${n(sw * 0.5)})"`)}</g>` + line;
+}
+// twinkle(x,y,r,ang,col) 4-point sparkle star
+function twinkle(x, y, r, ang = 0, col = '#fff6a8') {
+  if (r <= 0.5) return '';
+  const q = r * 0.18;
+  return `<path transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)})" d="M0,${n(-r)} Q${n(q)},${n(-q)} ${n(r)},0 Q${n(q)},${n(q)} 0,${n(r)} Q${n(-q)},${n(q)} ${n(-r)},0 Q${n(-q)},${n(-q)} 0,${n(-r)} Z" fill="${col}" stroke="${INK}" stroke-width="${n(Math.max(2, r * 0.12))}" stroke-linejoin="round"/>`;
+}
+// sparkleBurst(x,y,t,t0,sc,count,col) twinkles fly out and fade over 0.9 s (reveals)
+function sparkleBurst(x, y, t, t0, sc = 1, cnt = 8, col = '#fff6a8') {
+  const u = (t - t0) / 0.9;
+  if (u < 0 || u > 1) return '';
+  const r = rng(Math.round(Math.abs(x * 7 + y * 3 + t0 * 100)) + 1);
+  let s = '';
+  for (let i = 0; i < cnt; i++) {
+    const a = (i / cnt) * 2 * Math.PI + r() * 0.6, d = (70 + 130 * r()) * sc * eo(Math.min(1, u * 1.4));
+    const sz = (16 + 20 * r()) * sc * Math.sin(Math.PI * Math.min(1, u * 1.15 + 0.05)) * (i % 3 === 0 ? 1.3 : 1);
+    s += twinkle(x + Math.cos(a) * d, y + Math.sin(a) * d, sz, u * 120 + i * 20, i % 2 ? '#ffffff' : col);
+  }
+  return s;
+}
+// confetti(x,y,t,t0,sc,count,seed) celebration burst, 1.8 s
+function confetti(x, y, t, t0, sc = 1, cnt = 22, seed = 3) {
+  const u = t - t0;
+  if (u < 0 || u > 1.8) return '';
+  const r = rng(seed), cols = ['#e8413a', '#ffd23f', '#4fa3e0', '#7ee07a', '#b98cf0', '#ff8a3d'];
+  let s = '';
+  for (let i = 0; i < cnt; i++) {
+    const vx = (r() - 0.5) * 900 * sc, vy = -(500 + r() * 700) * sc, sp = (r() - 0.5) * 900, c = cols[i % cols.length];
+    const drag = 1 - Math.exp(-2.2 * u);
+    const px = x + vx * drag / 2.2 + 30 * sc * Math.sin(u * 7 + i), py = y + vy * drag / 2.2 + 520 * sc * u * u;
+    const op = u > 1.4 ? 1 - (u - 1.4) / 0.4 : 1;
+    s += `<rect x="${n(-9 * sc)}" y="${n(-5 * sc)}" width="${n(18 * sc)}" height="${n(10 * sc * Math.abs(Math.cos(u * 9 + i)) + 2)}" rx="2" fill="${c}" stroke="${INK}" stroke-width="2.5" opacity="${n(op)}" transform="translate(${n(px)} ${n(py)}) rotate(${n(sp * u)})"/>`;
+  }
+  return s;
+}
+// dust(x,y,t,t0,sc) little puffs at the feet (landings, run starts), 0.5 s
+function dust(x, y, t, t0, sc = 1) {
+  const u = (t - t0) / 0.5;
+  if (u < 0 || u > 1) return '';
+  let s = '';
+  for (const [dx, r0] of [[-60, 18], [-28, 24], [26, 22], [58, 16]]) {
+    const e = eo(u), rr = r0 * sc * (0.6 + 0.9 * e);
+    s += `<circle cx="${n(x + dx * sc * (0.6 + 0.8 * e))}" cy="${n(y - 10 * sc - 18 * sc * e)}" r="${n(rr)}" fill="#efe6d6" stroke="${INK}" stroke-width="${n(3 * sc)}" opacity="${n(0.9 * (1 - u))}"/>`;
+  }
+  return s;
+}
+// speedStreaks(x,y,t,sc,dir) motion lines behind a runner (dir 1 = moving right)
+function speedStreaks(x, y, t, sc = 1, dir = 1) {
+  let s = '';
+  for (let i = 0; i < 4; i++) {
+    const yy = y - (80 + i * 70) * sc, ph = (t * 6 + i * 0.37) % 1, L = (90 + 40 * (i % 2)) * sc;
+    const x0 = x - dir * (90 + 60 * ph) * sc;
+    s += `<line x1="${n(x0)}" y1="${n(yy)}" x2="${n(x0 - dir * L)}" y2="${n(yy)}" stroke="${INK}" stroke-width="${n(6 * sc)}" stroke-linecap="round" opacity="${n(0.55 * (1 - ph))}"/>`;
+  }
+  return s;
+}
+
+// ---- v4 layered backgrounds (parallax). bgLayers(name, t) -> [[factor, svg], ...]; factor 0 = fixed to the screen,
+// 1 = moves with the characters. Wide enough (x -900..1980) for pans and zoom-outs. Horizon/floor line stays at y 1480.
+const BGX0 = -900, BGX1 = 1980;
+function hex6(c) { return /^#[0-9a-f]{3}$/i.test(c) ? '#' + c.slice(1).split('').map((h) => h + h).join('') : c; }
+function bgHills(y, amp, col, seed, cnt = 6, edge = 0.35) {
+  const r = rng(seed), step = (BGX1 - BGX0) / cnt;
+  let d = `M${BGX0},${H + 300} L${BGX0},${n(y)}`;
+  for (let i = 1; i <= cnt; i++) d += ` Q${n(BGX0 + (i - 0.5) * step)},${n(y - amp * (0.5 + 0.9 * r()))} ${n(BGX0 + i * step)},${n(y + amp * 0.12 * (r() - 0.5))}`;
+  d += ` L${BGX1},${H + 300} Z`;
+  return `<path d="${d}" fill="${col}" stroke="${INK}" stroke-opacity="${edge}" stroke-width="5" stroke-linejoin="round"/>`;
+}
+function bgCloud(x, y, sc, op = 0.95) {
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})" opacity="${op}"><ellipse cx="0" cy="18" rx="120" ry="26" fill="#d6ecfb"/>` +
+    `<path d="M-120,20 Q-130,-20 -80,-22 Q-70,-70 -15,-60 Q10,-100 60,-70 Q110,-70 112,-25 Q140,-10 120,20 Z" fill="#ffffff"/>` +
+    `<path d="M-112,14 Q0,26 116,12" fill="none" stroke="#c4def4" stroke-width="8" stroke-linecap="round"/></g>`;
+}
+function bgTree(x, y, sc, col = '#5fae54', trunk = '#8a5a34') {
+  return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})"><rect x="-10" y="-70" width="20" height="72" rx="6" fill="${trunk}" stroke="${INK}" stroke-width="5" stroke-opacity="0.5"/>` +
+    `<circle cx="0" cy="-110" r="62" fill="${col}" stroke="${INK}" stroke-width="5" stroke-opacity="0.5"/><circle cx="-34" cy="-80" r="40" fill="${col}"/><circle cx="34" cy="-84" r="42" fill="${col}"/>` +
+    `<circle cx="22" cy="-104" r="40" fill="#000" opacity="0.08"/></g>`;
+}
+function groundTex(y, base, tuft, seed = 5, cnt = 70) {
+  const r = rng(seed);
+  let s = `<rect x="${BGX0}" y="${y}" width="${BGX1 - BGX0}" height="${H + 300 - y}" fill="${base}"/>`;
+  s += `<rect x="${BGX0}" y="${y}" width="${BGX1 - BGX0}" height="90" fill="url(#floorSh4)"/>`;
+  for (let i = 0; i < 5; i++) s += `<ellipse cx="${n(BGX0 + r() * (BGX1 - BGX0))}" cy="${n(y + 120 + r() * 300)}" rx="${n(160 + r() * 200)}" ry="${n(22 + r() * 20)}" fill="${tuft}" opacity="0.18"/>`;
+  let d = '';
+  for (let i = 0; i < cnt; i++) {
+    const gx = BGX0 + r() * (BGX1 - BGX0), gy = y + 30 + Math.pow(r(), 1.4) * 420, k = 0.6 + (gy - y) / 420;
+    d += `M${n(gx)},${n(gy)} l${n(-6 * k)},${n(-14 * k)} M${n(gx)},${n(gy)} l0,${n(-18 * k)} M${n(gx)},${n(gy)} l${n(6 * k)},${n(-14 * k)} `;
+  }
+  s += `<path d="${d}" stroke="${tuft}" stroke-width="4" stroke-linecap="round" fill="none"/>`;
+  return s + `<line x1="${BGX0}" y1="${y}" x2="${BGX1}" y2="${y}" stroke="${INK}" stroke-width="6"/>`;
+}
+function stars4(t, cnt, seed, rMax, speed = 1.5) {
+  const r = rng(seed); let s = '';
+  for (let i = 0; i < cnt; i++) {
+    const x = BGX0 + r() * (BGX1 - BGX0), y = -200 + r() * 1700, rr = 1.5 + r() * rMax, op = 0.35 + 0.6 * Math.abs(Math.sin(t * speed + i * 1.7));
+    s += rr > rMax * 0.8 ? twinkle(x, y, rr * 2.4, 0, '#ffffff').replace(`stroke="${INK}"`, 'stroke="none"').replace('<path ', `<path opacity="${n(op)}" `) : `<circle cx="${n(x)}" cy="${n(y)}" r="${n(rr)}" fill="#fff" opacity="${n(op)}"/>`;
+  }
+  return s;
+}
+const BG4 = {
+  studio: (t) => [
+    [0, `<rect width="${W}" height="${H}" fill="url(#studio)"/>`],
+    [0.25, `<ellipse cx="540" cy="760" rx="620" ry="760" fill="url(#spot4)"/>` +
+      [-560, -180, 200, 580, 960, 1340].map((x) => `<rect x="${x}" y="260" width="300" height="1060" rx="40" fill="#cdb8f6" opacity="0.45" stroke="#b9a0ee" stroke-width="6" stroke-opacity="0.5"/>`).join('') +
+      Array.from({ length: 7 }, (_, i) => `<circle cx="${(i * 233 + 90) % 1600 - 260}" cy="${200 + (i * 151) % 900}" r="${10 + (i * 7) % 18}" fill="#fff" opacity="${n(0.25 + 0.15 * Math.sin(t * 1.3 + i))}"/>`).join('')],
+    [1, (() => { let s = `<rect x="${BGX0}" y="1480" width="${BGX1 - BGX0}" height="740" fill="#c9b6f2"/><rect x="${BGX0}" y="1480" width="${BGX1 - BGX0}" height="80" fill="url(#floorSh4)"/>`;
+      for (const y of [1560, 1660, 1790]) s += `<line x1="${BGX0}" y1="${y}" x2="${BGX1}" y2="${y}" stroke="#b49deb" stroke-width="5"/>`;
+      for (let x = BGX0 + 120; x < BGX1; x += 260) s += `<line x1="${x}" y1="1560" x2="${x + 40}" y2="1660" stroke="#b49deb" stroke-width="4"/><line x1="${x + 130}" y1="1660" x2="${x + 190}" y2="1790" stroke="#b49deb" stroke-width="4"/>`;
+      return s + `<line x1="${BGX0}" y1="1480" x2="${BGX1}" y2="1480" stroke="${INK}" stroke-width="6"/>`; })()],
+  ],
+  day: (t) => [
+    [0, `<rect width="${W}" height="${H}" fill="url(#skyDay4)"/>`],
+    [0.08, `<circle cx="860" cy="330" r="230" fill="url(#sunGlow4)"/><circle cx="860" cy="330" r="74" fill="#ffe066" stroke="${INK}" stroke-width="6" stroke-opacity="0.35"/>` +
+      bgCloud(((80 + t * 14) % 1900) - 400, 480, 1.0) + bgCloud(((900 + t * 9) % 1900) - 400, 300, 0.75, 0.85) + bgCloud(((1500 + t * 11) % 1900) - 400, 640, 0.6, 0.8)],
+    [0.3, bgHills(1300, 260, '#a9d9a0', 4, 5, 0.25)],
+    [0.55, bgHills(1420, 150, '#86c777', 9, 7, 0.4) + [-520, -150, 330, 760, 1180, 1600].map((x, i) => bgTree(x, 1405 - (i % 2) * 18, 0.65 + 0.12 * (i % 3), i % 2 ? '#62b35a' : '#4f9f4a')).join('')],
+    [1, groundTex(1480, '#8fcf5f', '#6db446', 7)],
+  ],
+  night: (t) => [
+    [0, `<rect width="${W}" height="${H}" fill="url(#skyNight4)"/>`],
+    [0.06, stars4(t, 70, 21, 3) + `<circle cx="820" cy="360" r="220" fill="url(#moonGlow4)"/><circle cx="820" cy="360" r="78" fill="#fff6d5" stroke="${INK}" stroke-width="6" stroke-opacity="0.4"/><circle cx="792" cy="340" r="16" fill="#efe2b8"/><circle cx="842" cy="392" r="11" fill="#efe2b8"/>`],
+    [0.3, bgHills(1320, 240, '#28385a', 6, 5, 0.3)],
+    [0.55, bgHills(1430, 140, '#2f4a45', 12, 7, 0.4)],
+    [1, groundTex(1480, '#3c5a3a', '#2c472b', 8)],
+  ],
+  space: (t) => [
+    [0, `<rect width="${W}" height="${H}" fill="url(#space4)"/>`],
+    [0.06, `<ellipse cx="220" cy="520" rx="620" ry="420" fill="url(#nebA4)"/><ellipse cx="900" cy="1300" rx="560" ry="480" fill="url(#nebB4)"/><ellipse cx="1300" cy="300" rx="500" ry="300" fill="url(#nebA4)"/>` + stars4(t, 90, 13, 2.2, 1.1)],
+    [0.3, stars4(t, 26, 31, 4.5, 1.8)],
+  ],
+  paper: () => [[0, (() => { let s = `<rect width="${W}" height="${H}" fill="#fff8e6"/>`; for (let y = 120; y < H; y += 90) s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#ecdfc0" stroke-width="4"/>`; return s + `<line x1="130" y1="0" x2="130" y2="${H}" stroke="#f4b6b0" stroke-width="4"/><rect width="${W}" height="${H}" fill="url(#vig4)"/>`; })()]],
+  // plain colour backdrop: soft centre light + vignette + faint distant shapes
+  color: (t, c) => {
+    const col = hex6(c), ok = /^#[0-9a-f]{6}$/i.test(col);
+    if (!ok) return [[0, `<rect width="${W}" height="${H}" fill="${c}"/>`]];
+    const r = rng(parseInt(col.slice(1), 16) % 9973 + 1), tint = mixHex(col, '#ffffff', 0.35), deep = mixHex(col, '#1c1c3a', 0.07);
+    let far = '';
+    for (let i = 0; i < 7; i++) far += `<circle cx="${n(BGX0 + 200 + r() * 2400)}" cy="${n(150 + r() * 1500)}" r="${n(90 + r() * 220)}" fill="${i % 3 ? tint : deep}" opacity="${n(i % 3 ? 0.28 + 0.15 * r() : 0.12)}"/>`;
+    return [[0, `<rect width="${W}" height="${H}" fill="${col}"/>`], [0.2, far], [0, `<rect width="${W}" height="${H}" fill="url(#lift4)"/><rect width="${W}" height="${H}" fill="url(#vig4)"/>`]];
+  },
+};
+function bgLayers(b, t) {
+  if (BG4[b] && b !== 'color') return BG4[b](t);
+  if (typeof b === 'string' && b[0] === '#') return BG4.color(t, b);
+  return [[0, `<rect width="${W}" height="${H}" fill="${b}"/>`]];
 }

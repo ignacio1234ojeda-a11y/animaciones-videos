@@ -1,6 +1,6 @@
 """Cartoon sound-effects library + mixer (full library, v3).
 
-python3 sfx.py OUT.wav --vo vo/take1.wav [--vo-at 0.1] [--cues cues.py]
+python3 sfx.py OUT.wav --vo vo/take1.wav [--vo-at 0.1] [--cues cues.py] [--music curious|spooky|upbeat] [--music-db -15]
 """
 import re, subprocess, sys, wave
 from pathlib import Path
@@ -389,6 +389,255 @@ def yawn_snd(d=1.0, f0=170):
     return norm(lp(v, 3500) * e)
 
 
+# ====================================================== v4 (2026-11-27): auto SFX for transitions, steps, landings, reveals
+def whip(d=0.22):
+    """whip-pan whoosh: fast, bright, peaks early"""
+    t = tt(d)
+    x = bp(rs.standard_normal(len(t)), 900, 7000)
+    s_, _ = sweep(2400, 700, d)
+    e = np.where(t < d * 0.35, (t / (d * 0.35)) ** 2, ((d - t) / (d * 0.65)) ** 2.2)
+    return norm((x + 0.15 * s_) * e)
+
+
+def swish(d=0.36):
+    """wipe: airy swish that sweeps up"""
+    t = tt(d)
+    x = rs.standard_normal(len(t))
+    lo = hp(x, 600); hi = hp(x, 3000)
+    mixr = t / d
+    e = np.sin(np.pi * t / d) ** 1.5
+    return norm(lp((1 - mixr) * lo + mixr * hi, 9000) * e)
+
+
+def zoomwhoosh(d=0.34):
+    """zoom-through: rising noise + tonal riser that pops at the end"""
+    t = tt(d)
+    s_, _ = sweep(300, 2600, d)
+    x = bp(rs.standard_normal(len(t)), 500, 6000) * (t / d) ** 2 + 0.35 * s_ * (t / d) ** 3
+    x *= np.minimum(1, (d - t) / 0.02)
+    return norm(x)
+
+
+def softthump():
+    t = tt(0.18)
+    return norm(np.sin(2 * np.pi * 95 * t) * np.exp(-t / 0.05) + 0.3 * lp(rs.standard_normal(len(t)), 500) * np.exp(-t / 0.02))
+
+
+def thud(scale=1.0):
+    """landing / impact: low body thump + dull noise"""
+    d = 0.45
+    t = tt(d)
+    f = 45 + 75 * np.exp(-t / 0.05) * scale
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.12)
+    x += 0.45 * lp(rs.standard_normal(len(t)), 350) * np.exp(-t / 0.04)
+    x += 0.15 * bp(rs.standard_normal(len(t)), 800, 2500) * np.exp(-t / 0.01)
+    return norm(x * np.minimum(1, t / 0.002))
+
+
+def footstep(i=0, run=0):
+    """soft cartoon footstep (tip-tap), i alternates the pitch"""
+    d = 0.09
+    t = tt(d)
+    f0 = (520 if i % 2 else 440) * (1.15 if run else 1)
+    x = np.sin(2 * np.pi * f0 * t) * np.exp(-t / 0.012) + 0.5 * np.sin(2 * np.pi * f0 * 0.5 * t) * np.exp(-t / 0.02)
+    x += 0.5 * bp(rs.standard_normal(len(t)), 1200, 5000) * np.exp(-t / 0.006)
+    return norm(x * np.minimum(1, t / 0.001))
+
+
+def sparkle(d=0.9):
+    """reveal: rising glockenspiel arpeggio + shimmer"""
+    out = np.zeros(int(d * SR))
+    for i, f in enumerate([1568, 2093, 2637, 3136, 4186]):
+        b = ding(f, 0.5)[: int(0.5 * SR)] * (0.9 - 0.1 * i)
+        p = int(i * 0.045 * SR); out[p:p + len(b)] += b[: len(out) - p]
+    t = tt(d)
+    out += 0.25 * hp(rs.standard_normal(len(t)), 6000) * (rs.random(len(t)) < 0.1) * np.exp(-t / 0.35)
+    return norm(out)
+
+
+def yikes():
+    """scared recoil: quick slide-whistle up + knock"""
+    d = 0.32
+    t = tt(d)
+    f = 500 * (2.6 ** (t / d))
+    x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.minimum(1, t / 0.01) * np.minimum(1, (d - t) / 0.05)
+    k = knock(1.4); x[:len(k)] += 0.5 * k
+    return norm(x)
+
+
+# ====================================================== v4: background music bed (generated, original, no samples)
+MOODS = {
+    # bpm, chords (root midi, quality), melody scale (semitones from key), key midi, style
+    "curious": dict(bpm=104, key=65, chords=[(53, "M"), (50, "m"), (46, "M"), (48, "M")], scale=[0, 2, 4, 7, 9], style="pizz"),
+    "spooky": dict(bpm=84, key=62, chords=[(50, "m"), (46, "M"), (43, "m"), (45, "M")], scale=[0, 2, 3, 7, 8], style="spooky"),
+    "upbeat": dict(bpm=124, key=67, chords=[(55, "M"), (50, "M"), (52, "m"), (48, "M")], scale=[0, 2, 4, 7, 9], style="uke"),
+}
+
+
+def mtof(m):
+    return 440.0 * 2 ** ((m - 69) / 12)
+
+
+def chord_notes(root, q):
+    return [root, root + (4 if q == "M" else 3), root + 7]
+
+
+def _add(buf, x, at):
+    p = int(at * SR)
+    if p >= len(buf) or p < 0: return
+    seg = x[: len(buf) - p]; buf[p:p + len(seg)] += seg
+
+
+def i_pluck(f, d=0.3, bright=1.0):
+    t = tt(d)
+    x = np.zeros(len(t))
+    for k in range(1, 9):
+        if f * k > 11000: break
+        x += (1 / k ** 1.15) * np.sin(2 * np.pi * f * k * t + 0.3 * k) * np.exp(-t * (7 + 5 * k * bright))
+    x += 0.04 * bp(rs.standard_normal(len(t)), 2000, 8000) * np.exp(-t / 0.004)
+    return x * np.minimum(1, t / 0.002) * np.minimum(1, (d - t) / 0.02)
+
+
+def i_mallet(f, d=0.6):
+    t = tt(d)
+    x = np.sin(2 * np.pi * f * t) * np.exp(-t / 0.3) + 0.35 * np.sin(2 * np.pi * f * 3.98 * t) * np.exp(-t / 0.06) + 0.08 * np.sin(2 * np.pi * f * 9.9 * t) * np.exp(-t / 0.02)
+    return x * np.minimum(1, t / 0.002) * np.minimum(1, (d - t) / 0.03)
+
+
+def i_bell(f, d=1.2):
+    t = tt(d)
+    x = sum(a * np.sin(2 * np.pi * f * m * t) * np.exp(-t / (0.7 / m)) for m, a in [(1, 1), (2.0, 0.28), (3.0, 0.1), (4.2, 0.08)])
+    return x * np.minimum(1, t / 0.003) * np.minimum(1, (d - t) / 0.05)
+
+
+def i_bass(f, d=0.4):
+    t = tt(d)
+    x = np.sin(2 * np.pi * f * t) + 0.35 * np.sin(4 * np.pi * f * t) + 0.12 * np.sin(6 * np.pi * f * t)
+    return x * np.minimum(1, t / 0.006) * np.exp(-t / (d * 0.6)) * np.minimum(1, (d - t) / 0.03)
+
+
+def i_pad(fs, d):
+    t = tt(d)
+    x = np.zeros(len(t))
+    for f in fs:
+        for det in (-0.004, 0.0, 0.005):
+            ph = np.cumsum(np.full(len(t), f * (1 + det))) / SR
+            x += 2 * (ph % 1) - 1
+    x = lp(x, 900)
+    return x * np.minimum(1, t / 0.5) * np.minimum(1, (d - t) / 0.6)
+
+
+def i_theremin(f0, f1, d):
+    t = tt(d)
+    f = f0 * (f1 / f0) ** np.clip((t - 0.2) / max(0.01, d - 0.6), 0, 1) * (1 + 0.012 * np.sin(2 * np.pi * 5.5 * t))
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.minimum(1, t / 0.25) * np.minimum(1, (d - t) / 0.35)
+
+
+def d_kick():
+    t = tt(0.25)
+    f = 50 + 90 * np.exp(-t / 0.03)
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.09)
+
+
+def d_shaker(acc=1.0):
+    t = tt(0.07)
+    return hp(rs.standard_normal(len(t)), 5000) * np.sin(np.pi * t / 0.07) ** 2 * acc
+
+
+def d_clap():
+    t = tt(0.16)
+    x = bp(rs.standard_normal(len(t)), 900, 4000)
+    e = sum(np.exp(-np.maximum(0, t - o) / 0.01) * (t >= o) for o in (0, 0.012, 0.024)) / 3 + 0.6 * np.exp(-t / 0.05)
+    return x * e
+
+
+def melody_plan(rng, scale, key, n_bars, chords, dens):
+    """2-bar motif (rhythm + contour) repeated over the chord loop, snapped to chord tones on strong beats"""
+    pool = sorted({key + o + 12 * k for o in scale for k in (0, 1)})
+    rhythm = [i for i in range(16) if (i % 4 == 0 and rng.random() < 0.8) or (i % 4 != 0 and rng.random() < dens)]
+    steps = [int(rng.choice([-2, -1, -1, 1, 1, 2, 0])) for _ in range(16)]
+    notes = []
+    for b0 in range(0, n_bars, 2):
+        idx = len(pool) // 2 + int(rng.choice([-1, 0, 1]))
+        var = b0 % 8 == 4
+        for j, pos in enumerate(rhythm):
+            bar = b0 + pos // 8
+            if bar >= n_bars: break
+            idx = int(np.clip(idx + (steps[j] if not var else -steps[j]), 0, len(pool) - 1))
+            m = pool[idx]
+            if pos % 4 == 0:
+                ct = chord_notes(*chords[bar % len(chords)])
+                cands = [c + 12 * k for c in ct for k in range(-1, 4)]
+                m = min(cands, key=lambda c: abs(c - m) + (0 if c >= pool[0] else 99))
+                idx = int(np.argmin([abs(p_ - m) for p_ in pool]))
+            nxt = rhythm[j + 1] if j + 1 < len(rhythm) else 16
+            notes.append((bar, pos % 8, m, max(1, min(4, nxt - pos))))
+    return notes
+
+
+def music(mood="curious", dur=30.0, seed=5):
+    M = MOODS.get(mood, MOODS["curious"])
+    rng = np.random.default_rng(seed)
+    beat = 60.0 / M["bpm"]; bar = 4 * beat; e8 = beat / 2
+    n_bars = int(np.ceil(dur / bar)) + 1
+    L = int((dur + 2) * SR)
+    pz, bs, md, dr, pd = (np.zeros(L) for _ in range(5))
+    chords = M["chords"]; style = M["style"]
+    for b in range(n_bars):
+        root, q = chords[b % len(chords)]
+        ct = chord_notes(root, q); t0 = b * bar
+        if style == "pizz":
+            pat = [ct[0], ct[2], ct[0] + 12, ct[2], ct[1] + 12, ct[2], ct[0] + 12, ct[2]]
+            for i, m in enumerate(pat): _add(pz, i_pluck(mtof(m), 0.22, 1.2) * (1.0 if i % 2 == 0 else 0.7), t0 + i * e8)
+            _add(bs, i_pluck(mtof(root - 12), 0.45, 0.4), t0); _add(bs, i_pluck(mtof(root - 5), 0.4, 0.4), t0 + 2 * beat)
+            for i in range(8): _add(dr, d_shaker(1.0 if i % 2 else 0.55), t0 + i * e8)
+        elif style == "spooky":
+            _add(pd, i_pad([mtof(m - 12) for m in ct], bar + 0.6), t0)
+            pat = [ct[0] - 12, ct[2] - 12, ct[0], ct[2] - 12]
+            for i, m in enumerate(pat): _add(bs, i_pluck(mtof(m), 0.3, 0.5), t0 + i * beat)
+            _add(dr, d_kick() * 0.7, t0)
+            if b % 4 == 3: _add(md, 0.35 * i_theremin(mtof(ct[2] + 12), mtof(ct[0] + 12), bar * 0.95), t0 + 0.1)
+        else:  # uke
+            for pos in (0, 2, 3, 5, 6, 7):
+                up = pos in (3, 5, 7)
+                strum = [ct[0], ct[1], ct[2], ct[0] + 12][::(-1 if up else 1)]
+                for k, m in enumerate(strum): _add(pz, i_pluck(mtof(m), 0.3, 1.4) * (0.75 if up else 1.0) * 0.55, t0 + pos * e8 + k * 0.012)
+            for pos, m in ((0, root - 12), (3, root - 5), (4, root - 12), (6, root)): _add(bs, i_bass(mtof(m), 0.3), t0 + pos * e8)
+            _add(dr, d_kick(), t0); _add(dr, d_kick() * 0.8, t0 + 2 * beat)
+            _add(dr, d_clap() * 0.6, t0 + beat); _add(dr, d_clap() * 0.6, t0 + 3 * beat)
+            for i in range(16): _add(dr, d_shaker(0.5 if i % 2 else 0.25), t0 + i * e8 / 2)
+    dens = {"pizz": 0.32, "spooky": 0.18, "uke": 0.42}[style]
+    for bar_i, p8, m, ln in melody_plan(rng, M["scale"], M["key"] + (12 if style == "spooky" else 0), n_bars, chords, dens):
+        at = bar_i * bar + p8 * e8
+        if style == "spooky": _add(md, 0.8 * i_bell(mtof(m), 1.4), at)
+        else: _add(md, i_mallet(mtof(m), min(0.9, ln * e8 + 0.2)), at)
+    parts = {"pizz": (pz, 0.55), "bass": (bs, 0.75), "mel": (md, 0.5), "drums": (dr, 0.32 if style == "uke" else 0.14), "pad": (pd, 0.3)}
+    out = np.zeros(L)
+    for x, g in parts.values():
+        m_ = np.max(np.abs(x))
+        if m_ > 0: out += x / m_ * g
+    out = hp(lp(out, 7000), 60)
+    out = out[: int(dur * SR)]
+    f_in, f_out = int(0.05 * SR), int(0.35 * SR)
+    out[:f_in] *= np.linspace(0, 1, f_in); out[-f_out:] *= np.linspace(1, 0, f_out)
+    return out
+
+
+def duck_gain(vo, n, at, depth_db=-9.0):
+    """gain curve (len n) that dips music under the voice: fast attack, slow release"""
+    hop = int(0.01 * SR)
+    v = np.zeros(n); p = int(at * SR); seg = vo[: max(0, n - p)]; v[p:p + len(seg)] = np.abs(seg)
+    fr = np.array([np.sqrt(np.mean(v[i:i + hop] ** 2)) for i in range(0, n, hop)])
+    ref = np.percentile(fr[fr > 0], 90) if np.any(fr > 0) else 1
+    x = np.clip(fr / (0.25 * ref + 1e-9), 0, 1)
+    sm = np.zeros(len(x)); c = 0.0
+    for i, xv in enumerate(x):
+        a = 0.55 if xv > c else 0.035  # ~20 ms attack, ~350 ms release at 10 ms frames
+        c += a * (xv - c); sm[i] = c
+    g = 10 ** (depth_db * sm / 20)
+    return np.interp(np.arange(n), np.arange(len(g)) * hop, g)
+
+
 def load_audio(path):
     raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", str(path), "-f", "f32le", "-ac", "1", "-ar", str(SR), "-"], capture_output=True, check=True).stdout
     return np.frombuffer(raw, np.float32).astype(np.float64)
@@ -406,17 +655,31 @@ def main():
         if p >= len(mix) or p < 0: continue
         seg = snd[: len(mix) - p] * 10 ** (db / 20)
         mix[p:p + len(seg)] += seg
+    vo = None
     if "--vo" in opt:
         vo = load_audio(opt["--vo"])
         p = int(float(opt.get("--vo-at", 0.1)) * SR)
         seg = vo[: max(0, len(mix) - p)]
         mix[p:p + len(seg)] += seg
+    if opt.get("--music"):
+        # v4: generated music bed, level set against the voice, auto-ducked under it
+        bed = music(opt["--music"], len(mix) / SR, int(opt.get("--seed", 5)))
+        bed = np.pad(bed, (0, max(0, len(mix) - len(bed))))[: len(mix)]
+        if vo is not None:
+            va = vo[np.abs(vo) > 1e-4]
+            vr = np.sqrt(np.mean(va ** 2)) if len(va) else 0.1
+            br = np.sqrt(np.mean(bed ** 2)) + 1e-9
+            bed *= vr * 10 ** (float(opt.get("--music-db", -15)) / 20) / br
+            bed *= duck_gain(vo, len(mix), float(opt.get("--vo-at", 0.1)))
+        else:
+            bed *= 0.12 / (np.sqrt(np.mean(bed ** 2)) + 1e-9)
+        mix += bed
     mix = mix[: int(T["END"] * SR)]
     fade = int(0.08 * SR); mix[-fade:] *= np.linspace(1, 0, fade)
     peak = np.max(np.abs(mix))
     if peak > 10 ** (-3 / 20):
         mix *= 10 ** (-3 / 20) / peak
-    print(f"peak {20 * np.log10(np.max(np.abs(mix)) + 1e-9):.1f} dBFS, {len(mix) / SR:.2f}s")
+    print(f"peak {20 * np.log10(np.max(np.abs(mix)) + 1e-9):.1f} dBFS, {len(mix) / SR:.2f}s" + (f", music {opt['--music']}" if opt.get("--music") else ""))
     pcm = (np.clip(mix, -1, 1) * 32767).astype(np.int16)
     with wave.open(out, "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())
