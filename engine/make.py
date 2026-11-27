@@ -120,7 +120,7 @@ TRSFX = {"whip": ("whip()", -25), "slide": ("whoosh(0.3, 600, 5000)", -30), "wip
 CAP_RE = re.compile(r"^\s*captainCoat\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)\s*\+\s*captainCap\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)\s*$")
 GLASS_RE = re.compile(r"^\s*spyglass\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*-10\s*\)\s*$")
 WEAR = ("captainCap", "captainCoat", "spyglass", "hornHelmet", "ironHelmet", "eyePatch", "bandana", "rangerHat", "bicorne",
-        "crown", "elderBeard", "cane", "stubble")
+        "crown", "elderBeard", "cane", "stubble", "slouchHat")
 CALL_RE = re.compile(r"(\w+)\(([^()]*)\)")
 
 def _num(s):

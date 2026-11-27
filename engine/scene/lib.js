@@ -2107,16 +2107,17 @@ const OST_SK = '#f4a6a0', OST_BK = '#2b2b30', OST_WH = '#fbf7ef';
 function ostrich(x, y, sc, o = {}) {
   // feet at (x,y), faces right. o: t, dip 0..1 (head down into a hole at +300,0), run 0..1, kick 0..1, mood calm|smug|scared|gasp, flip
   const t = o.t || 0, dip = clamp(o.dip || 0), run = o.run || 0, kick = clamp(o.kick || 0), mood = o.mood || 'calm';
+  const SK = o.skin || OST_SK, BK = o.body || OST_BK, WH = o.plume || OST_WH, WG = o.wing || '#45454c', BK1 = o.beak || '#f0b04a', BK2 = o.beak2 || '#e79a35';
   const ph = t * 7 * 2 * Math.PI;
   const bob = run * 12 * Math.abs(Math.sin(ph)) + 4 * Math.sin(t * 2.2) * (1 - run);
   const leg = (hx, k, front) => {
     let sw = run * 70 * Math.sin(ph + k), fy = -run * 30 * Math.max(0, Math.sin(ph + k + 1.5));
     let kx = hx + 26 + sw * 0.4, ky = -150 - bob * 0.5, fx = hx + sw, fyy = fy;
     if (front && kick > 0) { kx = lerp(kx, hx + 120, kick); ky = lerp(ky, -230, kick); fx = lerp(fx, hx + 250, kick); fyy = lerp(fyy, -170, kick); }
-    let s = `<path d="M${hx},${n(-270 - bob)} L${n(kx)},${n(ky)}" stroke="${INK}" stroke-width="58" stroke-linecap="round"/><path d="M${hx},${n(-270 - bob)} L${n(kx)},${n(ky)}" stroke="${OST_SK}" stroke-width="44" stroke-linecap="round"/>`;
-    s += `<path d="M${n(kx)},${n(ky)} L${n(fx)},${n(fyy - 10)}" stroke="${INK}" stroke-width="30" stroke-linecap="round"/><path d="M${n(kx)},${n(ky)} L${n(fx)},${n(fyy - 10)}" stroke="${OST_SK}" stroke-width="17" stroke-linecap="round"/>`;
+    let s = `<path d="M${hx},${n(-270 - bob)} L${n(kx)},${n(ky)}" stroke="${INK}" stroke-width="58" stroke-linecap="round"/><path d="M${hx},${n(-270 - bob)} L${n(kx)},${n(ky)}" stroke="${SK}" stroke-width="44" stroke-linecap="round"/>`;
+    s += `<path d="M${n(kx)},${n(ky)} L${n(fx)},${n(fyy - 10)}" stroke="${INK}" stroke-width="30" stroke-linecap="round"/><path d="M${n(kx)},${n(ky)} L${n(fx)},${n(fyy - 10)}" stroke="${SK}" stroke-width="17" stroke-linecap="round"/>`;
     const fa = front ? -60 * kick : 0;
-    s += `<g transform="translate(${n(fx)} ${n(fyy - 6)}) rotate(${n(fa)})"><path d="M-14,0 Q10,-18 52,-4 Q60,8 44,10 L-14,10 Z" fill="${OST_SK}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/><path d="M50,-2 L64,4 L50,10" fill="#fff" stroke="${INK}" stroke-width="4"/></g>`;
+    s += `<g transform="translate(${n(fx)} ${n(fyy - 6)}) rotate(${n(fa)})"><path d="M-14,0 Q10,-18 52,-4 Q60,8 44,10 L-14,10 Z" fill="${SK}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/><path d="M50,-2 L64,4 L50,10" fill="#fff" stroke="${INK}" stroke-width="4"/></g>`;
     return s;
   };
   let s = leg(-40, Math.PI, false);
@@ -2124,13 +2125,14 @@ function ostrich(x, y, sc, o = {}) {
   let b = '';
   const fl = [];
   for (let i = 0; i < 9; i++) { const a = Math.PI + i * Math.PI / 8; fl.push(`${n(150 * Math.cos(a))},${n(-330 + 100 * Math.sin(a) * (i % 2 ? 1.12 : 1))}`); }
-  b += `<path d="M-150,-330 C-150,-430 140,-450 165,-340 C175,-280 120,-240 40,-238 L-20,-240 Q-60,-215 -90,-245 Q-120,-225 -140,-262 Q-175,-262 -160,-300 Z" fill="${OST_BK}" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
+  b += `<path d="M-150,-330 C-150,-430 140,-450 165,-340 C175,-280 120,-240 40,-238 L-20,-240 Q-60,-215 -90,-245 Q-120,-225 -140,-262 Q-175,-262 -160,-300 Z" fill="${BK}" stroke="${INK}" stroke-width="${OUT}" stroke-linejoin="round"/>`;
   // tail plume + wing
   const tw = 6 * Math.sin(t * 4);
-  b += `<path d="M-140,-380 Q-230,${n(-430 + tw)} -235,${n(-360 + tw)} Q-215,-350 -232,-320 Q-200,-300 -150,-312 Z" fill="${OST_WH}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  b += `<path d="M-140,-380 Q-230,${n(-430 + tw)} -235,${n(-360 + tw)} Q-215,-350 -232,-320 Q-200,-300 -150,-312 Z" fill="${WH}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
   const wf = run ? 14 * Math.sin(ph * 0.5) : 0;
-  b += `<path d="M-60,-370 Q30,${n(-395 - wf)} 110,-330 Q60,-300 20,-305 Q0,-280 -30,-300 Q-60,-285 -70,-320 Z" fill="#45454c" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
-  b += `<path d="M60,-312 Q90,-300 110,-330 Q100,-296 78,-290 Z" fill="${OST_WH}" stroke="${INK}" stroke-width="5"/>`;
+  b += `<path d="M-60,-370 Q30,${n(-395 - wf)} 110,-330 Q60,-300 20,-305 Q0,-280 -30,-300 Q-60,-285 -70,-320 Z" fill="${WG}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  b += `<path d="M60,-312 Q90,-300 110,-330 Q100,-296 78,-290 Z" fill="${WH}" stroke="${INK}" stroke-width="5"/>`;
+  if (o.bodyX) b += o.bodyX;
   s += `<g transform="translate(0 ${n(-bob)})">${b}</g>`;
   s += leg(40, 0, true);
   // neck + head
@@ -2139,18 +2141,20 @@ function ostrich(x, y, sc, o = {}) {
   const hx = lerp(hxU, hxD, eio(dip)), hy = lerp(hyU, hyD, eio(dip));
   const cx = lerp(200, 330, dip), cy = lerp(-470, -420, dip);
   const neck = `M${n0x},${n(n0y)} Q${n(cx)},${n(cy)} ${n(hx)},${n(hy)}`;
-  s += `<path d="${neck}" fill="none" stroke="${INK}" stroke-width="44" stroke-linecap="round"/><path d="${neck}" fill="none" stroke="${OST_SK}" stroke-width="30" stroke-linecap="round"/>`;
-  s += `<path d="M${n0x - 10},${n(n0y + 6)} Q${n0x + 10},${n(n0y - 30)} ${n0x + 34},${n(n0y - 4)}" fill="${OST_WH}" stroke="${INK}" stroke-width="5"/>`;
+  s += `<path d="${neck}" fill="none" stroke="${INK}" stroke-width="44" stroke-linecap="round"/><path d="${neck}" fill="none" stroke="${SK}" stroke-width="30" stroke-linecap="round"/>`;
+  s += `<path d="M${n0x - 10},${n(n0y + 6)} Q${n0x + 10},${n(n0y - 30)} ${n0x + 34},${n(n0y - 4)}" fill="${WH}" stroke="${INK}" stroke-width="5"/>`;
   const ha = 95 * eio(dip);
-  let h = `<ellipse cx="0" cy="0" rx="44" ry="38" fill="${OST_SK}" stroke="${INK}" stroke-width="${OUT}"/>`;
+  let h = `<ellipse cx="0" cy="0" rx="44" ry="38" fill="${SK}" stroke="${INK}" stroke-width="${OUT}"/>`;
   h += `<path d="M-20,-34 q6,-22 14,-4 q8,-22 14,0" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`;
   const open = mood === 'gasp' ? 16 : 0;
-  h += `<path d="M28,-4 Q80,-2 92,10 Q70,18 30,14 Z" fill="#f0b04a" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
-  h += `<path d="M30,14 Q66,${18 + open} 88,${12 + open * 0.6} Q66,${26 + open} 28,22 Z" fill="#e79a35" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  h += `<path d="M28,-4 Q80,-2 92,10 Q70,18 30,14 Z" fill="${BK1}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  h += `<path d="M30,14 Q66,${18 + open} 88,${12 + open * 0.6} Q66,${26 + open} 28,22 Z" fill="${BK2}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
   const er = mood === 'scared' || mood === 'gasp' ? 22 : 19, pr = mood === 'scared' ? 5 : 9;
   h += `<circle cx="6" cy="-6" r="${er}" fill="#fff" stroke="${INK}" stroke-width="5"/><circle cx="12" cy="-5" r="${pr}" fill="${INK}"/><circle cx="15" cy="-9" r="3" fill="#fff"/>`;
   h += `<path d="M-6,${-6 - er} l-6,-12 M4,${-6 - er} l0,-13 M14,${-6 - er} l6,-11" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
-  if (mood === 'smug') h += `<path d="M${6 - er},-8 A${er},${er} 0 0 1 ${6 + er},-8 Z" fill="${OST_SK}" stroke="${INK}" stroke-width="5"/>`;
+  if (mood === 'smug') h += `<path d="M${6 - er},-8 A${er},${er} 0 0 1 ${6 + er},-8 Z" fill="${SK}" stroke="${INK}" stroke-width="5"/>`;
+  if (mood === 'mad') h += `<path d="M-16,-34 L28,-20" stroke="${INK}" stroke-width="8" stroke-linecap="round"/>`;
+  if (o.hat) h += o.hat;
   if (dip < 0.9) s += `<g transform="translate(${n(hx)} ${n(hy)}) rotate(${n(ha)}) scale(${n(1 - clamp((dip - 0.6) / 0.3))})">${h}</g>`;
   const fx = o.flip ? -1 : 1;
   return `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc * fx)} ${n(sc)})">${shadow(0, 0, 150, 18)}${s}</g>`;
@@ -2859,4 +2863,81 @@ function bgLayers(b, t) {
   if (BG4[b] && b !== 'color') return BG4[b](t);
   if (typeof b === 'string' && b[0] === '#') return BG4.color(t, b);
   return [[0, `<rect width="${W}" height="${H}" fill="${b}"/>`]];
+}
+
+// ---- Great Emu War pieces (2026-11-27) ----
+// emu(x,y,sc,{t,run,mood:'calm'|'smug'|'scared'|'gasp'|'mad',flip,helmet,dip}) shaggy brown emu, feet at (x,y), faces right
+function emu(x, y, sc, o = {}) {
+  let shag = '';
+  for (let i = 0; i < 11; i++) { const xx = -130 + i * 26, yy = -262 + 10 * Math.sin(i * 1.7); shag += `<path d="M${xx},${n(yy - 40)} q-6,30 -16,${n(46 + 8 * (i % 3))}" fill="none" stroke="#3e2a1b" stroke-width="6" stroke-linecap="round"/>`; }
+  for (let i = 0; i < 6; i++) shag += `<path d="M${-100 + i * 40},-380 q10,26 -4,52" fill="none" stroke="#8a6a48" stroke-width="5" stroke-linecap="round" opacity="0.8"/>`;
+  const hat = o.helmet ? `<g transform="translate(-4 -18) rotate(-8)"><ellipse cx="0" cy="0" rx="66" ry="14" fill="#5d6236" stroke="${INK}" stroke-width="6"/><path d="M-42,-2 Q-40,-56 0,-58 Q40,-56 42,-2 Z" fill="#737a44" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/><path d="M-26,-30 Q-10,-46 12,-44" fill="none" stroke="#9aa264" stroke-width="6" stroke-linecap="round"/></g>` : '';
+  return ostrich(x, y, sc, Object.assign({ skin: '#7f8aa0', body: '#5e4330', plume: '#6e5036', wing: '#4a3424', beak: '#4a4a52', beak2: '#3a3a40', bodyX: shag, hat }, o));
+}
+// emuHerd(t,y,cnt,sc,seed,run,spread) a mob of emus; spread>0 makes them scatter outward over time (dir alternates)
+function emuHerd(t, y, cnt, sc, seed = 7, run = 0, spread = 0) {
+  const r = rng(seed), it = [];
+  for (let i = 0; i < cnt; i++) it.push({ x: 60 + r() * 960, d: r(), p: r() * 3, f: r() > 0.5 });
+  it.sort((a, b) => a.d - b.d);
+  return it.map(e => { const dir = e.f ? -1 : 1, xx = e.x + dir * spread * (400 + 300 * e.d);
+    return emu(xx, y + e.d * 240, sc * (0.55 + 0.55 * e.d), { t: t + e.p, run, flip: e.f, mood: run ? 'gasp' : 'calm' }); }).join('');
+}
+// wheatField(t,y,h,dense,eaten) golden wheat stalks swaying, tops at y, bottom at y+h; eaten 0..1 removes heads
+function wheatField(t, y, h = 260, dense = 34, eaten = 0) {
+  const r = rng(11);
+  let s = `<rect x="-60" y="${n(y + h * 0.35)}" width="${W + 120}" height="${n(h)}" fill="#d9a83c"/>`;
+  for (let i = 0; i < dense; i++) {
+    const x = -30 + i * (W + 60) / dense + r() * 20, hh = h * (0.7 + 0.3 * r()), sw = 10 * Math.sin(t * 2 + i * 0.6), top = y + h - hh;
+    s += `<path d="M${n(x)},${n(y + h)} Q${n(x + sw * 0.4)},${n(top + hh * 0.5)} ${n(x + sw)},${n(top)}" fill="none" stroke="#b9862a" stroke-width="7" stroke-linecap="round"/>`;
+    if (r() > eaten) s += `<g transform="translate(${n(x + sw)} ${n(top)}) rotate(${n(sw * 0.8)})"><ellipse cx="0" cy="-24" rx="13" ry="34" fill="#f2c94c" stroke="${INK}" stroke-width="5"/><path d="M-12,-36 L-22,-62 M0,-56 L0,-84 M12,-36 L22,-62" stroke="#c99a2e" stroke-width="4" stroke-linecap="round"/></g>`;
+  }
+  return s;
+}
+// lewisGun(x,y,sc,ang,fire,t,jam) WWI machine gun on a bipod, (x,y) = bipod feet, barrel points right; fire 0..1 muzzle flash; jam smoke
+function lewisGun(x, y, sc, ang = 0, fire = 0, t = 0, jam = 0) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  s += `<path d="M60,0 L110,-120 M160,0 L110,-120" stroke="${INK}" stroke-width="12" stroke-linecap="round"/>`;
+  s += `<g transform="translate(110 -130) rotate(${n(ang)})">`;
+  s += `<path d="M-170,-10 L-260,30 L-250,62 L-150,26 Z" fill="#8a5a2b" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>`;
+  s += celShape({ x: -170, y: -34, w: 120, h: 56, rx: 10 }, '#4a4f55', { sw: 8 });
+  s += celShape({ x: -60, y: -40, w: 230, h: 68, rx: 22 }, '#5c636b', { sw: 8 });
+  for (let i = 0; i < 6; i++) s += `<line x1="${-40 + i * 36}" y1="-34" x2="${-40 + i * 36}" y2="22" stroke="#3a3f45" stroke-width="5"/>`;
+  s += `<rect x="168" y="-18" width="70" height="24" rx="6" fill="#3a3f45" stroke="${INK}" stroke-width="7"/>`;
+  s += `<ellipse cx="-110" cy="-52" rx="74" ry="18" fill="#3a3f45" stroke="${INK}" stroke-width="7"/><ellipse cx="-110" cy="-58" rx="22" ry="6" fill="#5c636b"/>`;
+  if (fire > 0.02 && Math.sin(t * 60) > -0.2) { const f = fire * (0.8 + 0.4 * Math.abs(Math.sin(t * 37))); s += `<g transform="translate(250 -6) scale(${n(f)})"><path d="M0,0 L60,-40 L50,-10 L110,0 L50,10 L60,40 Z" fill="#ffd23f" stroke="#ff8a3d" stroke-width="6" stroke-linejoin="round"/><circle cx="18" cy="0" r="16" fill="#fff6a8"/></g>`; }
+  if (jam > 0.02) for (let i = 0; i < 4; i++) { const u = (t * 0.7 + i / 4) % 1; s += `<circle cx="${n(-60 + 30 * Math.sin(u * 9 + i))}" cy="${n(-70 - u * 260)}" r="${n((20 + u * 40) * jam)}" fill="#9aa0a6" opacity="${n(0.75 * (1 - u))}"/>`; }
+  return s + `</g></g>`;
+}
+// armyTruck(x,groundY,sc,t,bump,gun) 1930s army truck facing right; bump 0..1 bounces it; gun=1 puts a Lewis gun in the back
+function armyTruck(x, y, sc, t, bump = 0, gun = 1, fire = 0) {
+  const b = bump * 16 * Math.abs(Math.sin(t * 9)), tilt = bump * 2.5 * Math.sin(t * 7);
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">${shadow(0, 0, 300, 20)}`;
+  s += `<g transform="translate(0 ${n(-b)}) rotate(${n(tilt)} 0 -120)">`;
+  if (gun) s += lewisGun(-150, -230, 0.62, -6 + 8 * bump * Math.sin(t * 11), fire, t);
+  s += celShape({ x: -290, y: -230, w: 330, h: 120, rx: 10 }, '#6f7442', { sw: 9 });
+  for (const xx of [-230, -160, -90, -20]) s += `<line x1="${xx}" y1="-226" x2="${xx}" y2="-114" stroke="#4f5330" stroke-width="6"/>`;
+  s += celShape({ d: 'M40,-110 L40,-290 L170,-290 L215,-200 L290,-190 Q306,-186 306,-170 L306,-110 Z', size: 90 }, '#7c8249', { sw: 9 });
+  s += `<path d="M60,-270 L150,-270 L182,-206 L60,-206 Z" fill="#bfe3f2" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>`;
+  s += `<circle cx="296" cy="-160" r="12" fill="#fff6a8" stroke="${INK}" stroke-width="5"/>`;
+  s += `<rect x="-300" y="-118" width="610" height="22" rx="8" fill="#3a3d28" stroke="${INK}" stroke-width="7"/></g>`;
+  for (const wx of [-190, 200]) {
+    s += `<g transform="translate(${wx} -62) rotate(${n(t * 400)})"><circle r="62" fill="#2b2b30" stroke="${INK}" stroke-width="8"/><circle r="28" fill="#8a8f96" stroke="${INK}" stroke-width="6"/>`;
+    for (let i = 0; i < 5; i++) s += `<line x1="0" y1="0" x2="${n(28 * Math.cos(i * 1.2566))}" y2="${n(28 * Math.sin(i * 1.2566))}" stroke="${INK}" stroke-width="5"/>`;
+    s += `</g>`;
+  }
+  if (bump > 0) s += dust(-320, -10, (t * 2) % 1, 0, 1.4);
+  return s + `</g>`;
+}
+// slouchHat(gx,gy,sc) Australian army slouch hat (left brim pinned up) on a guy at (gx,gy,sc)
+function slouchHat(gx, gy, sc) {
+  return `<g transform="translate(${n(gx)} ${n(gy - sc * 318)}) scale(${n(sc * 0.62)})"><path d="M-200,38 Q0,66 190,38 Q200,24 180,18 L-60,22 Z" fill="#8a7650" stroke="${INK}" stroke-width="9" stroke-linejoin="round"/><path d="M-90,30 L-150,-80 Q-160,-110 -120,-90 L-60,20 Z" fill="#8a7650" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/><path d="M-80,30 L-70,-60 Q0,-100 80,-60 L92,30 Z" fill="#a08a5e" stroke="${INK}" stroke-width="9" stroke-linejoin="round"/><path d="M0,-80 L0,-50" stroke="${INK}" stroke-width="6"/><rect x="-86" y="2" width="176" height="22" fill="#4a3a22"/><circle cx="-128" cy="-60" r="14" fill="#d9b04a" stroke="${INK}" stroke-width="5"/></g>`;
+}
+// bullet(x,y,sc,ang) one rifle cartridge; bulletRow(x,y,sc,cnt,gap,k) a row that pops in one by one with k (0..1)
+function bullet(x, y, sc, ang = 0) {
+  return `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})"><rect x="-16" y="-20" width="32" height="70" rx="5" fill="#d9a83c" stroke="${INK}" stroke-width="6"/><path d="M-16,-20 Q-16,-70 0,-80 Q16,-70 16,-20 Z" fill="#c0703a" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/><rect x="-10" y="-10" width="6" height="52" fill="#f2d27a"/></g>`;
+}
+function bulletRow(x, y, sc, cnt, gap = 80, k = 1) {
+  let s = ''; const m = Math.ceil(cnt * clamp(k));
+  for (let i = 0; i < m; i++) s += bullet(x + (i - (cnt - 1) / 2) * gap * sc, y, sc, -6 + 12 * (i % 2));
+  return s;
 }
