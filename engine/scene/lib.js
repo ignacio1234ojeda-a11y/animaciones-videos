@@ -2941,3 +2941,68 @@ function bulletRow(x, y, sc, cnt, gap = 80, k = 1) {
   for (let i = 0; i < m; i++) s += bullet(x + (i - (cnt - 1) / 2) * gap * sc, y, sc, -6 + 12 * (i % 2));
   return s;
 }
+
+// ---- swim-after-eating pieces (2026-11-28) ----
+// pool(t,y,part) swimming pool, water surface at y. part 'back' (tiled wall, deck, water) then draw swimmers, then part 'front' (water over their bodies)
+function pool(t, y, part = 'back') {
+  const wav = (yy, a, ph) => { let d = `M-60,${n(yy)}`; for (let x = -60; x <= W + 60; x += 60) d += ` Q${x + 30},${n(yy - a * Math.sin(t * 3 + x * 0.02 + ph))} ${x + 60},${n(yy)}`; return d; };
+  if (part === 'front') {
+    let s = `<path d="${wav(y + 40, 10, 1)} L${W + 60},1920 L-60,1920 Z" fill="#4fb6e8" opacity="0.82"/>`;
+    s += `<path d="${wav(y + 40, 10, 1)}" fill="none" stroke="#e8f8ff" stroke-width="10" stroke-linecap="round"/>`;
+    for (let i = 0; i < 7; i++) { const x = (i * 170 + t * 40) % (W + 100) - 50, yy = y + 140 + (i % 3) * 120; s += `<path d="M${n(x)},${yy} q30,-14 60,0" fill="none" stroke="#bfeaff" stroke-width="7" stroke-linecap="round" opacity="0.8"/>`; }
+    return s;
+  }
+  let s = `<rect x="-60" y="${n(y - 120)}" width="${W + 120}" height="${n(1980 - y)}" fill="#7fd0f2"/>`;
+  for (let x = -60; x < W + 60; x += 60) s += `<line x1="${x}" y1="${n(y - 120)}" x2="${x}" y2="1920" stroke="#9fe0fa" stroke-width="4"/>`;
+  for (let yy = y - 60; yy < 1920; yy += 60) s += `<line x1="-60" y1="${n(yy)}" x2="${W + 60}" y2="${n(yy)}" stroke="#9fe0fa" stroke-width="4"/>`;
+  s += `<rect x="-60" y="${n(y - 170)}" width="${W + 120}" height="56" fill="#f4efe6" stroke="${INK}" stroke-width="8"/>`;
+  for (let x = -40; x < W + 60; x += 120) s += `<rect x="${x}" y="${n(y - 164)}" width="56" height="44" fill="#2f7fc1" opacity="0.85"/>`;
+  s += `<path d="${wav(y, 8, 0)} L${W + 60},1920 L-60,1920 Z" fill="#3aa3dc" opacity="0.55"/>`;
+  return s;
+}
+// poolLadder(x,y,sc) chrome ladder, (x,y) = deck top
+function poolLadder(x, y, sc) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) scale(${n(sc)})">`;
+  for (const lx of [-50, 50]) s += `<path d="M${lx},260 L${lx},-40 Q${lx},-110 ${lx + 60},-110" fill="none" stroke="${INK}" stroke-width="20" stroke-linecap="round"/><path d="M${lx},260 L${lx},-40 Q${lx},-110 ${lx + 60},-110" fill="none" stroke="#d8dde3" stroke-width="10" stroke-linecap="round"/>`;
+  for (const yy of [40, 120, 200]) s += `<rect x="-50" y="${yy}" width="100" height="14" rx="6" fill="#d8dde3" stroke="${INK}" stroke-width="5"/>`;
+  return s + `</g>`;
+}
+// sandwich(x,y,sc,ang,bite) big sandwich centred at (x,y); bite 0..1 takes a bite out of the right corner
+function sandwich(x, y, sc, ang = 0, bite = 0) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})">`;
+  s += `<defs><clipPath id="swb${Math.round(x)}${Math.round(y)}"><path d="M-200,-200 L200,-200 L200,200 L-200,200 Z${bite > 0.02 ? ` M${n(150 - 10 * bite)},-60 a${n(60 * bite)},${n(60 * bite)} 0 1 0 0.1,0 Z` : ''}" clip-rule="evenodd"/></clipPath></defs><g clip-path="url(#swb${Math.round(x)}${Math.round(y)})">`;
+  s += celShape({ d: 'M-150,30 Q-160,70 -120,74 L120,74 Q160,70 150,30 Z', size: 40 }, '#e8b56a', { sw: 7 });
+  s += `<path d="M-160,10 Q-120,40 -80,12 Q-40,42 0,12 Q40,42 80,12 Q120,40 160,10 L150,34 L-150,34 Z" fill="#7ac943" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  s += `<rect x="-150" y="-12" width="300" height="26" rx="10" fill="#e8413a" stroke="${INK}" stroke-width="6"/>`;
+  s += `<path d="M-150,-14 L150,-14 L130,-34 L-120,-34 Z" fill="#ffd23f" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
+  s += celShape({ d: 'M-155,-30 Q-170,-110 -60,-118 Q0,-130 60,-118 Q170,-110 155,-30 Z', size: 50 }, '#f2c27a', { sw: 7 });
+  for (const [sx, sy] of [[-70, -80], [-20, -95], [40, -85], [90, -70]]) s += `<ellipse cx="${sx}" cy="${sy}" rx="7" ry="4" fill="#fff6dc"/>`;
+  return s + `</g></g>`;
+}
+// lifeRing(x,y,sc,t) red/white lifebuoy, bobbing
+function lifeRing(x, y, sc, t = 0) {
+  const b = 8 * Math.sin(t * 3);
+  let s = `<g transform="translate(${n(x)} ${n(y + b)}) rotate(${n(6 * Math.sin(t * 2))}) scale(${n(sc)})">`;
+  s += `<circle r="110" fill="#fbfbf7" stroke="${INK}" stroke-width="9"/>`;
+  for (let i = 0; i < 4; i++) { const a0 = i * Math.PI / 2 + 0.3, a1 = a0 + 0.7; s += `<path d="M${n(110 * Math.cos(a0))},${n(110 * Math.sin(a0))} A110,110 0 0 1 ${n(110 * Math.cos(a1))},${n(110 * Math.sin(a1))} L${n(55 * Math.cos(a1))},${n(55 * Math.sin(a1))} A55,55 0 0 0 ${n(55 * Math.cos(a0))},${n(55 * Math.sin(a0))} Z" fill="#e8413a" stroke="${INK}" stroke-width="6"/>`; }
+  s += `<circle r="55" fill="none" stroke="${INK}" stroke-width="9"/>`;
+  return s + `</g>`;
+}
+// bottle(x,y,sc,col,lab,ang) glass drink bottle, (x,y) = bottom centre
+function bottle(x, y, sc, col = '#5a8a3a', lab = 'BEER', ang = 0) {
+  let s = `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(ang)}) scale(${n(sc)})">`;
+  s += celShape({ d: 'M-60,0 L-60,-200 Q-60,-250 -24,-280 L-24,-360 L24,-360 L24,-280 Q60,-250 60,-200 L60,0 Z', size: 50 }, col, { sw: 8 });
+  s += `<rect x="-30" y="-384" width="60" height="28" rx="6" fill="#ffd23f" stroke="${INK}" stroke-width="6"/>`;
+  s += `<rect x="-52" y="-170" width="104" height="90" rx="10" fill="#fbf2d8" stroke="${INK}" stroke-width="6"/>`;
+  s += `<text x="0" y="-112" text-anchor="middle" font-family="Poppins, Arial Black, sans-serif" font-weight="900" font-size="${lab.length > 6 ? 18 : lab.length > 5 ? 22 : 30}" fill="${INK}">${lab}</text>`;
+  s += `<path d="M-40,-220 Q-44,-120 -40,-30" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity="0.4"/>`;
+  return s + `</g>`;
+}
+// bloodFlow(gx,gy,sc,t,belly) red dots flowing from the chest of a guy at (gx,gy,sc): a big stream to the belly, smaller ones to arms/legs
+function bloodFlow(gx, gy, sc, t, belly = 1) {
+  const p0 = [0, -190], tg = [[[0, -105], 4, 9 * belly], [[-95, -150], 3, 6], [[95, -150], 3, 6], [[-35, -20], 3, 6], [[35, -20], 3, 6]];
+  let s = `<g transform="translate(${n(gx)} ${n(gy)}) scale(${n(sc)})">`;
+  for (const [[ex, ey], cnt, r] of tg) for (let i = 0; i < cnt; i++) { const u = (t * 0.9 + i / cnt) % 1; s += `<circle cx="${n(lerp(p0[0], ex, u))}" cy="${n(lerp(p0[1], ey, u))}" r="${n(r)}" fill="#e8413a" stroke="${INK}" stroke-width="2"/>`; }
+  s += `<path d="M-14,-200 C-14,-214 0,-214 0,-202 C0,-214 14,-214 14,-200 C14,-188 0,-180 0,-172 C0,-180 -14,-188 -14,-200 Z" fill="#e8413a" stroke="${INK}" stroke-width="3"/>`;
+  return s + `</g>`;
+}
